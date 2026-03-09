@@ -113,11 +113,10 @@ class PageScreen extends Screen
                             ->type('number')
                             ->title('Порядок в меню')
                             ->value(0),
-                        Input::make('page.parent')
-                            ->type('number')
-                            ->title('Родитель (ID)')
-                            ->value(0)
-                            ->placeholder('0 — корневой элемент'),
+                        Select::make('page.parent')
+                            ->fromModel(Page::class, 'title', 'id')
+                            ->empty('Без родителя (корень)', '0')
+                            ->title('Родительская страница'),
                     ]),
                     Group::make([
                         Switcher::make('page.is_published')

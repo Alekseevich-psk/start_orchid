@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Orchid;
 
 use App\Models\Page;
-// use App\Services\MenuService;
 use Illuminate\Support\Facades\Cache;
 use Orchid\Platform\Dashboard;
 use Orchid\Platform\ItemPermission;
@@ -20,6 +19,11 @@ class PlatformProvider extends OrchidServiceProvider
     public function boot(Dashboard $dashboard): void
     {
         parent::boot($dashboard);
+
+        // Авто очистка кэша при изменении страниц
+        Page::created(fn() => Cache::forget('admin.menu.site'));
+        Page::updated(fn() => Cache::forget('admin.menu.site'));
+        Page::deleted(fn() => Cache::forget('admin.menu.site'));
     }
 
     /**
@@ -28,23 +32,22 @@ class PlatformProvider extends OrchidServiceProvider
     public function menu(): array
     {
         return [
-            // Menu::make('Главная')
-            //     ->icon('bs.house-door')
-            //     ->title('Навигация')
-            //     ->route('platform.page.edit', 1),
-
-            // Динамическое меню сайта
+            // Динамическое меню сайта — структура страниц
             $this->buildSiteMenu(),
 
+            // Системные настройки
             Menu::make('Настройки')
                 ->icon('gear')
                 ->list([
-                    Menu::make('Конфигурация')
-                        ->icon('bs.sliders')
-                        ->route('platform.settings'),
+                    Menu::make('Страницы')
+                        ->icon('list-task')
+                        ->route('platform.page.list'),
                     Menu::make('Шаблоны')
                         ->icon('list-task')
                         ->route('platform.template.list'),
+                    Menu::make('Конфигурация')
+                        ->icon('bs.sliders')
+                        ->route('platform.settings'),
                     Menu::make(__('Пользователи'))
                         ->icon('bs.people')
                         ->route('platform.systems.users')
@@ -62,7 +65,6 @@ class PlatformProvider extends OrchidServiceProvider
                                 ->icon('bs.collection')
                                 ->route('platform.example')
                                 ->badge(fn() => 6),
-                            // ... остальные примеры
                         ]),
                     Menu::make('Документация')
                         ->icon('bs.book')
@@ -72,35 +74,36 @@ class PlatformProvider extends OrchidServiceProvider
     }
 
     /**
-     * Построить динамическое меню сайта
+     * Построить динамическое меню сайта (для админки)
      */
     private function buildSiteMenu(): Menu
     {
         $items = Cache::remember('admin.menu.site', 3600, function () {
-            $pages = Page::where('in_menu', true)
-                ->orderBy('parent')
-                ->orderBy('menu_order')
-                ->get();
-
+            $pages = Page::orderBy('parent')->orderBy('menu_order')->get();
             return $this->buildTree($pages);
         });
 
         return Menu::make('Меню сайта')
             ->icon('list')
-            ->title('Структура сайта')
+            ->title('Управление страницами')
             ->list($this->formatForOrchid($items));
     }
 
     /**
-     * Преобразовать плоский список в дерево
+     * Построить дерево с защитой от циклов
      */
-    private function buildTree($items, $parentId = 0): array
+    private function buildTree($items, $parentId = 0, $depth = 0): array
     {
+
+        if ($depth > 10) {
+            return [];
+        }
+
         $branch = [];
 
         foreach ($items as $item) {
             if ($item->parent == $parentId) {
-                $children = $this->buildTree($items, $item->id);
+                $children = $this->buildTree($items, $item->id, $depth + 1);
 
                 if (!empty($children)) {
                     $item->children = $children;
@@ -114,13 +117,14 @@ class PlatformProvider extends OrchidServiceProvider
     }
 
     /**
-     * Преобразовать дерево страниц в структуру Menu::list()
+     * Преобразовать дерево в меню Orchid
+     * Ссылки ведут в редактор страницы: platform.page.edit
      */
     private function formatForOrchid($items): array
     {
         return array_map(function ($item) {
             $menu = Menu::make($item->title)
-                ->url(url($item->slug))
+                ->route('platform.page.edit', $item->id)
                 ->icon($item->children ? 'folder' : 'file-text');
 
             if (!empty($item->children)) {
