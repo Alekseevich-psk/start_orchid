@@ -1,0 +1,30 @@
+.bootstrap-tagsinput,
+.chosen-choices,
+.chosen-single,
+.form-control,
+.form-range {
+    max-width: initial;
+}
+
+.td-title,
+.td-title div {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.btn-td {
+    display: block;
+    width: 22px;
+    height: 22px;
+    border: none;
+    background: transparent;
+}
+
+.btn-td-wrap {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-td-wrap .form-group {
+    width: 22px;
+}
