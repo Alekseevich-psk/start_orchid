@@ -45,7 +45,7 @@ class PageScreen extends Screen
         }
 
         return [
-            'page'     => $page,
+            'page' => $page,
             'templates' => Template::query()->pluck('title', 'id'),
             'children' => $children,
         ];
@@ -56,42 +56,6 @@ class PageScreen extends Screen
         return $this->page->exists
             ? $this->page->title
             : "Создать страницу";
-    }
-
-    public function breadcrumbs(): array
-    {
-        $breadcrumbs = [
-            ['title' => 'Панель управления', 'url' => route('platform.main')],
-            ['title' => 'Меню сайта', 'url' => route('platform.page.list')]
-        ];
-
-        if ($this->page->exists) {
-            // Получим всех родителей
-            $parent = $this->page;
-            $parents = [];
-            
-            while ($parent && $parent->parent_id) {
-                $parent = Page::find($parent->parent_id);
-                if ($parent) {
-                    $parents[] = $parent;
-                }
-            }
-            
-            // Добавляем родителей в обратном порядке
-            foreach (array_reverse($parents) as $parent) {
-                $breadcrumbs[] = [
-                    'title' => $parent->title,
-                    'url' => route('platform.page.edit', $parent->id)
-                ];
-            }
-            
-            // Текущая страница
-            $breadcrumbs[] = ['title' => $this->page->title];
-        } else {
-            $breadcrumbs[] = ['title' => 'Создать страницу'];
-        }
-        
-        return $breadcrumbs;
     }
 
     public function commandBar(): array
@@ -252,7 +216,6 @@ class PageScreen extends Screen
         $this->checkTitleUniqueness($data, $page);
         $this->checkSlugUniqueness($data, $page);
 
-        // $data = $this->prepareBooleans($data);
         $data = $this->ensurePublishedAt($data);
 
         $page->fill($data)->save();

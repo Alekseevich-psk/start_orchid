@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <title>ORCHID CMS</title>
     <link rel="stylesheet" href="/css/app.css">
 </head>
+
 <body>
     <div class="container">
         <div class="content">
@@ -18,8 +20,8 @@
             </div>
 
             @include('navigation')
-            
-            @if(isset($breadcrumbs) && count($breadcrumbs) > 0)
+
+            @if (isset($breadcrumbs) && count($breadcrumbs) > 0)
                 <div class="breadcrumbs">
                     @foreach ($breadcrumbs as $index => $crumb)
                         @if ($index === count($breadcrumbs) - 1)
@@ -34,10 +36,8 @@
         </div>
     </div>
 
-    <script>
-        // Make menu tree available globally for JS
-        window.siteMenuTree = @json($siteMenuTree);
-    </script>
-    <script src="/vendor/orchid/js/orchid-menu.js"></script>
+    {{-- Если нужно для работы на клиенте с навигацией --}}
+    {{-- <script src="/vendor/orchid/js/orchid-menu.js"></script> --}}
 </body>
+
 </html>
