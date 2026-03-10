@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\Link;
+use Orchid\Screen\Actions\ModalToggle;
 use Orchid\Screen\Fields\Cropper;
 use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Fields\Group;
@@ -18,6 +19,7 @@ use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\Switcher;
 use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Screen;
+use Orchid\Screen\TD;
 use Orchid\Support\Facades\Layout;
 use Orchid\Support\Facades\Toast;
 
@@ -27,13 +29,25 @@ class PageScreen extends Screen
 
     public $templates;
 
+    public $children;
+
     public function query($id = null): array
     {
+        $page = $id ? Page::findOrFail($id) : new Page();
+
+        $children = collect();
+
+        if ($page->exists && $page->is_category) {
+            $children = Page::where('parent_id', $page->id)
+                ->orderBy('menu_order')
+                ->orderBy('title')
+                ->get();
+        }
+
         return [
-            'page' => $id
-                ? Page::findOrFail($id)
-                : new Page(),
-            'templates' => Template::query()->pluck('title', 'id')
+            'page'     => $page,
+            'templates' => Template::query()->pluck('title', 'id'),
+            'children' => $children,
         ];
     }
 
@@ -44,18 +58,48 @@ class PageScreen extends Screen
             : "Создать страницу";
     }
 
+    public function breadcrumbs(): array
+    {
+        $breadcrumbs = [
+            ['title' => 'Панель управления', 'url' => route('platform.main')],
+            ['title' => 'Меню сайта', 'url' => route('platform.page.list')]
+        ];
+
+        if ($this->page->exists) {
+            // Получим всех родителей
+            $parent = $this->page;
+            $parents = [];
+            
+            while ($parent && $parent->parent_id) {
+                $parent = Page::find($parent->parent_id);
+                if ($parent) {
+                    $parents[] = $parent;
+                }
+            }
+            
+            // Добавляем родителей в обратном порядке
+            foreach (array_reverse($parents) as $parent) {
+                $breadcrumbs[] = [
+                    'title' => $parent->title,
+                    'url' => route('platform.page.edit', $parent->id)
+                ];
+            }
+            
+            // Текущая страница
+            $breadcrumbs[] = ['title' => $this->page->title];
+        } else {
+            $breadcrumbs[] = ['title' => 'Создать страницу'];
+        }
+        
+        return $breadcrumbs;
+    }
+
     public function commandBar(): array
     {
-        return [
+        $commandBar = [
             Button::make('Сохранить')
                 ->icon('check')
                 ->method('save')
-                ->canSee($this->page->exists),
-
-            Link::make('Перейти на страницу')
-                ->icon('eye-fill')
-                ->route('page.show', $this->page->slug)
-                ->target('_blank')
                 ->canSee($this->page->exists),
 
             Button::make('Создать')
@@ -63,12 +107,54 @@ class PageScreen extends Screen
                 ->method('save')
                 ->canSee(!$this->page->exists),
         ];
+
+        if ($this->page->exists && $this->page->slug && $this->page->is_published) {
+            $commandBar[] = Link::make('Перейти на страницу')
+                ->icon('eye-fill')
+                ->route('page.show', $this->page->slug)
+                ->target('_blank')
+                ->canSee(true);
+        }
+
+        return $commandBar;
     }
 
     public function layout(): array
     {
         return [
             Layout::tabs([
+                'Дочерние' => $this->page->is_category ? Layout::table('children', [
+                    TD::make('id', 'id')->sort(),
+                    TD::make('title', 'Заголовок')
+                        ->render(
+                            fn($page) =>
+                            Link::make($page->title)
+                                ->route('platform.page.edit', $page->id)
+                                ->class('text-dark td-title text-decoration-none')
+                        ),
+                    TD::make('slug', 'URL'),
+                    TD::make('',)
+                        ->render(
+                            fn($page) =>
+                            Link::make()
+                                ->icon('eye-fill')
+                                ->route('page.show', $page->slug)
+                                ->target('_blank')
+                                ->class('text-dark td-title text-decoration-none')
+                        ),
+                    TD::make('')
+                        ->render(
+                            fn(Page $page) =>
+                            ModalToggle::make('')
+                                ->icon('trash')
+                                ->modal('removePage')
+                                ->modalTitle("Удалить шаблон \"{$page->title}\"?")
+                                ->method('remove', ['id' => $page->id])
+                                ->confirm('Удалить навсегда?')
+                                ->class('btn-td')
+                        )
+                        ->align(TD::ALIGN_RIGHT)->class('btn-td-wrap'),
+                ]) : [],
                 'Контент' => Layout::rows([
                     Input::make('page.title')
                         ->title('Заголовок')
@@ -113,30 +199,45 @@ class PageScreen extends Screen
                             ->type('number')
                             ->title('Порядок в меню')
                             ->value(0),
-                        Select::make('page.parent')
-                            ->fromModel(Page::class, 'title', 'id')
+                        Select::make('page.parent_id')
+                            ->fromModel(Page::where('is_category', true)->where('id', '!=', $this->page->id), 'title', 'id')
                             ->empty('Без родителя (корень)', '0')
                             ->title('Родительская страница'),
                     ]),
                     Group::make([
+                        Input::make('page.ico')
+                            ->title('Иконка')
+                            ->help('Оставьте поле пустым, чтобы отобразить иконку шаблона'),
+                        Input::make('page.slug')
+                            ->title('URL (slug)')
+                            ->placeholder('Оставьте пустым — будет сгенерирован автоматически')
+                            ->help('Используется в адресе страницы. Только латинские буквы, цифры, дефисы'),
+                    ]),
+                    Group::make([
                         Switcher::make('page.is_published')
+                            ->default(true)
+                            ->sendTrueOrFalse()
                             ->title('Опубликовано'),
                         Switcher::make('page.in_menu')
+                            ->default(true)
+                            ->sendTrueOrFalse()
                             ->title('Отображать в меню'),
                     ]),
                     Group::make([
                         Switcher::make('page.is_category')
+                            ->default(false)
+                            ->sendTrueOrFalse()
                             ->title('Является категорией'),
                         Switcher::make('page.indexed')
+                            ->default(true)
+                            ->sendTrueOrFalse()
                             ->title('Индексируется'),
                     ]),
-                    Input::make('page.slug')
-                        ->title('URL (slug)')
-                        ->placeholder('Оставьте пустым — будет сгенерирован автоматически')
-                        ->help('Используется в адресе страницы. Только латинские буквы, цифры, дефисы'),
                 ]),
                 'Блоки' => Layout::view('platform::dummy.block'),
             ]),
+
+            Layout::modal('removeChild', Layout::rows([]))->title('Подтвердите удаление'),
         ];
     }
 
@@ -151,7 +252,7 @@ class PageScreen extends Screen
         $this->checkTitleUniqueness($data, $page);
         $this->checkSlugUniqueness($data, $page);
 
-        $data = $this->prepareBooleans($data);
+        // $data = $this->prepareBooleans($data);
         $data = $this->ensurePublishedAt($data);
 
         $page->fill($data)->save();
@@ -159,6 +260,17 @@ class PageScreen extends Screen
         Toast::info('Страница сохранена');
 
         return redirect()->route('platform.page.edit', $page->id);
+    }
+
+    /**
+     * Удаление дочерней страницы
+     */
+    public function removeChild(int $id)
+    {
+        $child = Page::findOrFail($id);
+        $child->delete();
+
+        Toast::info("Страница «{$child->title}» удалена");
     }
 
     /**

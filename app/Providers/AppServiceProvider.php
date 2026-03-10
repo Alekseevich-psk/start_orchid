@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Services\MenuService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Share menu tree with views
+        view()->composer('*', function ($view) {
+            $menuTree = app(MenuService::class)->getFrontendMenuTree();
+            $view->with('siteMenuTree', $menuTree);
+        });
     }
 }

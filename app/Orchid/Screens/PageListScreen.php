@@ -32,6 +32,14 @@ class PageListScreen extends Screen
         return 'Страницы';
     }
 
+    public function breadcrumbs(): array
+    {
+        return [
+            ['title' => 'Панель управления', 'url' => route('platform.main')],
+            ['title' => 'Меню сайта']
+        ];
+    }
+
     /**
      * The screen's action buttons.
      */

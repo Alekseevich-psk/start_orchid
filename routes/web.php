@@ -1,10 +1,14 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\SitemapController;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/', [PageController::class, 'show'])->name('home');
+// Основные маршруты
+Route::get('/', [PageController::class, 'index'])->name('home');
 
-Route::get('/{slug}', [PageController::class, 'show'])
-    ->where('slug', '^(?!admin|login|register|password|api|sanctum|_ignition).*$')
-    ->name('page.show');
+// Карта сайта
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+
+Route::get('/{page}', [PageController::class, 'index'])->name('page.show');
+

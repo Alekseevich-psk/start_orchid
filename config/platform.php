@@ -129,7 +129,9 @@ return [
         'stylesheets' => [
             '/vendor/orchid/css/dev-orchid.css'
         ],
-        'scripts'     => [],
+        'scripts'     => [
+            '/vendor/orchid/js/orchid-menu.js'
+        ],
     ],
 
     /*

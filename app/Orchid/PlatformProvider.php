@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Orchid;
 
 use App\Models\Page;
+use App\Services\MenuService;
 use Illuminate\Support\Facades\Cache;
 use Orchid\Platform\Dashboard;
 use Orchid\Platform\ItemPermission;
@@ -20,10 +21,15 @@ class PlatformProvider extends OrchidServiceProvider
     {
         parent::boot($dashboard);
 
-        // Авто очистка кэша при изменении страниц
+        // Очистка кэша меню при изменении страниц
         Page::created(fn() => Cache::forget('admin.menu.site'));
         Page::updated(fn() => Cache::forget('admin.menu.site'));
         Page::deleted(fn() => Cache::forget('admin.menu.site'));
+
+        // Очистка кэша frontend-меню при изменении страниц
+        Page::created(fn() => Cache::forget('site.menu.tree'));
+        Page::updated(fn() => Cache::forget('site.menu.tree'));
+        Page::deleted(fn() => Cache::forget('site.menu.tree'));
     }
 
     /**
@@ -32,16 +38,13 @@ class PlatformProvider extends OrchidServiceProvider
     public function menu(): array
     {
         return [
-            // Динамическое меню сайта — структура страниц
+            // Динамическое меню сайта
             $this->buildSiteMenu(),
 
             // Системные настройки
             Menu::make('Настройки')
                 ->icon('gear')
                 ->list([
-                    Menu::make('Страницы')
-                        ->icon('list-task')
-                        ->route('platform.page.list'),
                     Menu::make('Шаблоны')
                         ->icon('list-task')
                         ->route('platform.template.list'),
@@ -58,14 +61,6 @@ class PlatformProvider extends OrchidServiceProvider
                         ->route('platform.systems.roles')
                         ->permission('platform.systems.roles')
                         ->divider(),
-                    Menu::make('Примеры')
-                        ->icon('bs.view-list')
-                        ->list([
-                            Menu::make('Sample Screen')
-                                ->icon('bs.collection')
-                                ->route('platform.example')
-                                ->badge(fn() => 6),
-                        ]),
                     Menu::make('Документация')
                         ->icon('bs.book')
                         ->route(config('platform.index')),
@@ -74,65 +69,17 @@ class PlatformProvider extends OrchidServiceProvider
     }
 
     /**
-     * Построить динамическое меню сайта (для админки)
+     * Построить динамическое меню сайта (плоское)
      */
     private function buildSiteMenu(): Menu
     {
-        $items = Cache::remember('admin.menu.site', 3600, function () {
-            $pages = Page::orderBy('parent')->orderBy('menu_order')->get();
-            return $this->buildTree($pages);
-        });
+        $menuItems = app(MenuService::class)->getAdminMenuItems();
 
         return Menu::make('Меню сайта')
             ->icon('list')
             ->title('Управление страницами')
-            ->list($this->formatForOrchid($items));
-    }
-
-    /**
-     * Построить дерево с защитой от циклов
-     */
-    private function buildTree($items, $parentId = 0, $depth = 0): array
-    {
-
-        if ($depth > 10) {
-            return [];
-        }
-
-        $branch = [];
-
-        foreach ($items as $item) {
-            if ($item->parent == $parentId) {
-                $children = $this->buildTree($items, $item->id, $depth + 1);
-
-                if (!empty($children)) {
-                    $item->children = $children;
-                }
-
-                $branch[] = $item;
-            }
-        }
-
-        return $branch;
-    }
-
-    /**
-     * Преобразовать дерево в меню Orchid
-     * Ссылки ведут в редактор страницы: platform.page.edit
-     */
-    private function formatForOrchid($items): array
-    {
-        return array_map(function ($item) {
-            $menu = Menu::make($item->title)
-                ->route('platform.page.edit', $item->id)
-                ->icon($item->children ? 'folder' : 'file-text');
-
-            if (!empty($item->children)) {
-                $menu->list($this->formatForOrchid($item->children));
-            }
-
-            return $menu;
-        }, $items);
+            ->list($menuItems)
+            ->route($menuItems ? 'platform.page.list' : 'platform.main');
     }
 
     /**

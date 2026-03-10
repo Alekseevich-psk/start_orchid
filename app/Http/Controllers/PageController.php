@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\View;
 class PageController extends Controller
 {
 
-    public function show($slug = null)
+    public function index($slug = null)
     {
         if (is_null($slug)) {
             $page = Page::findOrFail(1); // Главная — всегда id 1
@@ -24,6 +24,23 @@ class PageController extends Controller
                 ->firstOrFail();
         }
 
+        // Построение хлебных крошек
+        $breadcrumbs = [];
+        $current = $page;
+        while ($current && $current->parent_id) {
+            $current = Page::find($current->parent_id);
+            if ($current) {
+                $breadcrumbs[] = [
+                    'title' => $current->title,
+                    'url' => route('page.show', $current->slug)
+                ];
+            }
+        }
+        // Корень в начало
+        $breadcrumbs = array_reverse($breadcrumbs);
+        // Текущая страница
+        $breadcrumbs[] = ['title' => $page->title];
+
         $template = Template::findOrFail($page->template_id);
         $viewPath = $template->path;
 
@@ -31,6 +48,6 @@ class PageController extends Controller
             abort(404, 'Шаблон не найден');
         }
 
-        return view($viewPath, compact('page'));
+        return view($viewPath, compact('page', 'breadcrumbs'));
     }
 }

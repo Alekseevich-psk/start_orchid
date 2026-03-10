@@ -11,6 +11,23 @@ class Page extends Model
 {
     use HasFactory, AsSource, Filterable;
 
+    /**
+     * Scope a query to only include published and indexed pages.
+     */
+    public function scopePublished($query)
+    {
+        return $query->where('is_published', true)
+            ->where('indexed', true)
+            ->where(function ($q) {
+                $q->whereNull('published_at')
+                    ->orWhere('published_at', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('unpublished_at')
+                    ->orWhere('unpublished_at', '>=', now());
+            });
+    }
+
     protected $fillable = [
         'title',
         'subtitle',
@@ -21,8 +38,9 @@ class Page extends Model
         'blocks',
         'type',
         'is_category',
-        'parent',
+        'parent_id',
         'slug',
+        'ico',
         'is_published',
         'template_id',
         'in_menu',
@@ -41,6 +59,7 @@ class Page extends Model
         'is_published'   => 'boolean',
         'is_category'    => 'boolean',
         'in_menu'        => 'boolean',
+        'indexed'        => 'boolean',
     ];
 
     /**
@@ -49,6 +68,14 @@ class Page extends Model
     protected $allowedFilters = [
         // 'slug',
     ];
+
+    /**
+     * Scope a query to only include pages in menu.
+     */
+    public function scopeInMenu($query)
+    {
+        return $query->where('in_menu', true);
+    }
 
     /**
      * Поля для сортировки.
@@ -60,4 +87,35 @@ class Page extends Model
         'created_at',
         'updated_at',
     ];
+
+    // Значение по умолчанию для indexed
+    protected $attributes = [
+        'indexed' => true,
+        'in_menu' => true,
+        'is_published' => true,
+        'is_category' => false,
+    ];
+
+    // Связь с шаблоном
+    public function template()
+    {
+        return $this->belongsTo(Template::class);
+    }
+
+    public function getMenuIconAttribute()
+    {
+        if ($this->is_category) {
+            return 'folder';
+        }
+
+        if ($this->ico) {
+            return $this->ico;
+        }
+
+        if ($this->template_id && $this->template->icon) {
+            return $this->template->icon;
+        }
+
+        return 'file-text';
+    }
 }

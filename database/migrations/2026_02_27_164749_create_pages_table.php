@@ -23,11 +23,12 @@ return new class extends Migration
             $table->string('type')->default('page');                // Тип страницы
             $table->boolean('is_category')->default(false);         // Можно как категория
             $table->boolean('indexed')->default(true);              // Индексация страницы
-            $table->integer('parent')->default(0);                  // id родителя
+            $table->integer('parent_id')->default(0);                  // id родителя
             $table->string('slug')->unique();                       // URL
-            $table->boolean('is_published')->default(false);        // Опубликовано
+            $table->string('ico')->nullable();                      // ico menu
+            $table->boolean('is_published')->default(true);         // Опубликовано
             $table->unsignedBigInteger('template_id')->nullable();  // Шаблон
-            $table->boolean('in_menu')->default(false);             // В меню
+            $table->boolean('in_menu')->default(true);              // В меню
             $table->integer('menu_order')->default(0);              // Порядок в меню
             $table->string('alias')->nullable()->unique();          // Псевдоним / алиас
             $table->timestamp('published_at')->nullable();          // Дата публикации
