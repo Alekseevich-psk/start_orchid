@@ -22,6 +22,7 @@ use App\Orchid\Screens\TemplateScreen;
 use App\Orchid\Screens\User\UserEditScreen;
 use App\Orchid\Screens\User\UserListScreen;
 use App\Orchid\Screens\User\UserProfileScreen;
+use App\Orchid\Screens\FieldListScreen;
 use App\Services\MenuService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -169,6 +170,13 @@ Route::post('/upload/image', function (Request $request) {
 
 Route::screen('/settings', SettingListScreen::class)
     ->name('platform.settings');
+
+// Управление полями
+Route::screen('/fields', FieldListScreen::class)
+    ->name('platform.field.list')
+    ->breadcrumbs(fn(Trail $trail) => $trail
+        ->parent('platform.index')
+        ->push('Управление полями', route('platform.field.list')));
 
 // Example...
 Route::screen('example', ExampleScreen::class)

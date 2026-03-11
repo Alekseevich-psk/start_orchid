@@ -51,6 +51,9 @@ class PlatformProvider extends OrchidServiceProvider
                     Menu::make('Конфигурация')
                         ->icon('bs.sliders')
                         ->route('platform.settings'),
+                    Menu::make('Менеджер полей')
+                        ->icon('list-nested')
+                        ->route('platform.field.list'),
                     Menu::make(__('Пользователи'))
                         ->icon('bs.people')
                         ->route('platform.systems.users')

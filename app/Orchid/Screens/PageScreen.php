@@ -2,6 +2,7 @@
 
 namespace App\Orchid\Screens;
 
+use App\Models\Field;
 use App\Models\Page;
 use App\Models\Template;
 use App\Orchid\Fields\EditorJs;
@@ -15,7 +16,8 @@ use Orchid\Screen\Fields\Cropper;
 use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Fields\Group;
 use Orchid\Screen\Fields\Input;
-use Orchid\Screen\Fields\Quill;
+use Orchid\Screen\Fields\CheckBox;
+use Orchid\Screen\Fields\Upload;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\Switcher;
 use Orchid\Screen\Fields\TextArea;
@@ -86,123 +88,133 @@ class PageScreen extends Screen
 
     public function layout(): array
     {
-        return [
-            Layout::tabs([
-                'Дочерние' => $this->page->is_category ? Layout::table('children', [
-                    TD::make('id', 'id')->sort(),
-                    TD::make('title', 'Заголовок')
-                        ->render(
-                            fn($page) =>
-                            Link::make($page->title)
-                                ->route('platform.page.edit', $page->id)
-                                ->class('text-dark td-title text-decoration-none')
-                        ),
-                    TD::make('slug', 'URL'),
-                    TD::make('',)
-                        ->render(
-                            fn($page) =>
-                            Link::make()
-                                ->icon('eye-fill')
-                                ->route('page.show', $page->slug)
-                                ->target('_blank')
-                                ->class('text-dark td-title text-decoration-none')
-                        ),
-                    TD::make('')
-                        ->render(
-                            fn(Page $page) =>
-                            ModalToggle::make('')
-                                ->icon('trash')
-                                ->modal('removePage')
-                                ->modalTitle("Удалить шаблон \"{$page->title}\"?")
-                                ->method('remove', ['id' => $page->id])
-                                ->confirm('Удалить навсегда?')
-                                ->class('btn-td')
-                        )
-                        ->align(TD::ALIGN_RIGHT)->class('btn-td-wrap'),
-                ]) : [],
-                'Контент' => Layout::rows([
-                    Input::make('page.title')
-                        ->title('Заголовок')
-                        ->required(),
-                    Input::make('page.subtitle')
-                        ->title('Расширенный заголовок'),
-                    Input::make('page.excerpt')
-                        ->title('Аннотация'),
-                    TextArea::make('page.description')
-                        ->title('Описание (SEO)'),
-                    EditorJs::make('page.content')
-                        ->label('Контент'),
-                ]),
-                'Настройки' => Layout::rows([
-                    Group::make([
-                        Select::make('page.type')
-                            ->title('Тип страницы')
-                            ->options([
-                                'page' => 'Страница',
-                                'xml' => 'XML',
-                                'link' => 'Ссылка',
-                            ]),
-                        Select::make('page.template_id')
-                            ->title('Шаблон страницы')
-                            ->options($this->templates),
-                    ]),
-                    Group::make([
-                        DateTimer::make('page.published_at')
-                            ->title('Дата публикации')
-                            ->allowEmpty(),
-                        DateTimer::make('page.unpublished_at')
-                            ->type('datetime')
-                            ->title('Дата окончания публикации')
-                            ->allowEmpty(),
-                    ]),
-                    Group::make([
-                        Input::make('page.menu_order')
-                            ->type('number')
-                            ->title('Порядок в меню')
-                            ->value(0),
-                        Select::make('page.parent_id')
-                            ->fromModel(Page::where('is_category', true)->where('id', '!=', $this->page->id), 'title', 'id')
-                            ->empty('Без родителя (корень)', '0')
-                            ->title('Родительская страница'),
-                    ]),
-                    Group::make([
-                        Input::make('page.ico')
-                            ->title('Иконка')
-                            ->help('Оставьте поле пустым, чтобы отобразить иконку шаблона'),
-                        Input::make('page.slug')
-                            ->title('URL (slug)')
-                            ->placeholder('Оставьте пустым — будет сгенерирован автоматически')
-                            ->help('Используется в адресе страницы. Только латинские буквы, цифры, дефисы'),
-                    ]),
-                    Group::make([
-                        Switcher::make('page.is_published')
-                            ->default(true)
-                            ->sendTrueOrFalse()
-                            ->title('Опубликовано'),
-                        Switcher::make('page.in_menu')
-                            ->default(true)
-                            ->sendTrueOrFalse()
-                            ->title('Отображать в меню'),
-                    ]),
-                    Group::make([
-                        Switcher::make('page.is_category')
-                            ->default(false)
-                            ->sendTrueOrFalse()
-                            ->title('Является категорией'),
-                        Switcher::make('page.indexed')
-                            ->default(true)
-                            ->sendTrueOrFalse()
-                            ->title('Индексируется'),
-                    ]),
-                    Cropper::make('page.image')
-                        ->title('Превью страницы')
-                        ->width(500)
-                        ->height(300),
-                ]),
-                'Блоки' => Layout::rows([
-                    
-                ]),
+        $tabs = [
+            'Дочерние' => $this->page->is_category ? Layout::table('children', [
+                TD::make('id', 'id')->sort(),
+                TD::make('title', 'Заголовок')
+                    ->render(
+                        fn($page) =>
+                        Link::make($page->title)
+                            ->route('platform.page.edit', $page->id)
+                            ->class('text-dark td-title text-decoration-none')
+                    ),
+                TD::make('slug', 'URL'),
+                TD::make('')
+                    ->render(
+                        fn($page) =>
+                        Link::make()
+                            ->icon('eye-fill')
+                            ->route('page.show', $page->slug)
+                            ->target('_blank')
+                            ->class('text-dark td-title text-decoration-none')
+                    ),
+                TD::make('')
+                    ->render(
+                        fn(Page $page) =>
+                        ModalToggle::make('')
+                            ->icon('trash')
+                            ->modal('removePage')
+                            ->modalTitle("Удалить шаблон \"{$page->title}\"?")
+                            ->method('remove', ['id' => $page->id])
+                            ->confirm('Удалить навсегда?')
+                            ->class('btn-td')
+                    )
+                    ->align(TD::ALIGN_RIGHT)->class('btn-td-wrap'),
+            ]) : [],
+            'Контент' => Layout::rows([
+                Input::make('page.title')
+                    ->title('Заголовок')
+                    ->required(),
+                Input::make('page.subtitle')
+                    ->title('Расширенный заголовок'),
+                Input::make('page.excerpt')
+                    ->title('Аннотация'),
+                TextArea::make('page.description')
+                    ->title('Описание (SEO)'),
+                EditorJs::make('page.content')
+                    ->label('Контент'),
             ]),
+            'Настройки' => Layout::rows([
+                Group::make([
+                    Select::make('page.type')
+                        ->title('Тип страницы')
+                        ->options([
+                            'page' => 'Страница',
+                            'xml' => 'XML',
+                            'link' => 'Ссылка',
+                        ]),
+                    Select::make('page.template_id')
+                        ->title('Шаблон страницы')
+                        ->options($this->templates),
+                ]),
+                Group::make([
+                    DateTimer::make('page.published_at')
+                        ->title('Дата публикации')
+                        ->allowEmpty(),
+                    DateTimer::make('page.unpublished_at')
+                        ->type('datetime')
+                        ->title('Дата окончания публикации')
+                        ->allowEmpty(),
+                ]),
+                Group::make([
+                    Input::make('page.menu_order')
+                        ->type('number')
+                        ->title('Порядок в меню')
+                        ->value(0),
+                    Select::make('page.parent_id')
+                        ->fromModel(Page::where('is_category', true)->where('id', '!=', $this->page->id), 'title', 'id')
+                        ->empty('Без родителя (корень)', '0')
+                        ->title('Родительская страница'),
+                ]),
+                Group::make([
+                    Input::make('page.ico')
+                        ->title('Иконка')
+                        ->help('Оставьте поле пустым, чтобы отобразить иконку шаблона'),
+                    Input::make('page.slug')
+                        ->title('URL (slug)')
+                        ->placeholder('Оставьте пустым — будет сгенерирован автоматически')
+                        ->help('Используется в адресе страницы. Только латинские буквы, цифры, дефисы'),
+                ]),
+                Group::make([
+                    Switcher::make('page.is_published')
+                        ->default(true)
+                        ->sendTrueOrFalse()
+                        ->title('Опубликовано'),
+                    Switcher::make('page.in_menu')
+                        ->default(true)
+                        ->sendTrueOrFalse()
+                        ->title('Отображать в меню'),
+                ]),
+                Group::make([
+                    Switcher::make('page.is_category')
+                        ->default(false)
+                        ->sendTrueOrFalse()
+                        ->title('Является категорией'),
+                    Switcher::make('page.indexed')
+                        ->default(true)
+                        ->sendTrueOrFalse()
+                        ->title('Индексируется'),
+                ]),
+                Input::make('page.image')
+                    ->title('Debug: image value')
+                    ->disabled(),
+                Cropper::make('page.image')
+                    ->title('Превью страницы')
+                    ->width(500)
+                    ->height(300)
+                    ->path('pages/images')
+                    ->required(false),
+            ]),
+        ];
+
+        // Добавляем вкладку "Блоки" только если есть поля
+        $customFields = $this->buildCustomFields();
+        if (!empty($customFields)) {
+            $tabs['Блоки'] = Layout::rows($customFields);
+        }
+
+        return [
+            Layout::tabs($tabs),
 
             Layout::modal('removeChild', Layout::rows([]))->title('Подтвердите удаление'),
         ];
@@ -223,9 +235,79 @@ class PageScreen extends Screen
 
         $page->fill($data)->save();
 
+        // $page->syncMedia($request, 'image');
+
         Toast::info('Страница сохранена');
 
         return redirect()->route('platform.page.edit', $page->id);
+    }
+
+    /**
+     * Создаёт динамические поля из таблицы `fields`
+     */
+    private function buildCustomFields(): array
+    {
+        $modelType = 'page';
+        $modelId = 1; // Измените на нужный или получите из request
+
+        $fields = Field::where('model_type', $modelType)
+            ->where('model_id', $modelId)
+            ->get();
+
+        $formFields = [];
+
+        foreach ($fields as $field) {
+            $name = "page.blocks.{$field->field_id}";
+
+            switch ($field->type) {
+                case 'text':
+                    $formFields[] = Input::make($name)
+                        ->title($field->title);
+                    break;
+
+                case 'textarea':
+                    $formFields[] = TextArea::make($name)
+                        ->title($field->title)
+                        ->rows(5);
+                    break;
+
+                case 'checkbox':
+                    $formFields[] = CheckBox::make($name)
+                        ->title($field->title);
+                    break;
+
+                case 'select':
+                    $options = [];
+                    if ($field->options) {
+                        $decoded = json_decode($field->options, true);
+                        $options = is_array($decoded) ? $decoded : [];
+                    }
+                    $formFields[] = Select::make($name)
+                        ->title($field->title)
+                        ->options($options);
+                    break;
+
+                case 'image':
+                    $formFields[] = Upload::make($name)
+                        ->title($field->title)
+                        ->acceptedFiles('image/*');
+                    break;
+
+                case 'file':
+                    $formFields[] = Upload::make($name)
+                        ->title($field->title)
+                        ->acceptedFiles('*/*');
+                    break;
+
+                default:
+                    $formFields[] = Input::make($name)
+                        ->title("{$field->title} ({$field->type})")
+                        ->help('Тип не поддерживается');
+                    break;
+            }
+        }
+
+        return $formFields;
     }
 
     /**
