@@ -22,6 +22,7 @@ use App\Orchid\Screens\TemplateScreen;
 use App\Orchid\Screens\User\UserEditScreen;
 use App\Orchid\Screens\User\UserListScreen;
 use App\Orchid\Screens\User\UserProfileScreen;
+use App\Services\MenuService;
 use Illuminate\Support\Facades\Route;
 use Tabuna\Breadcrumbs\Trail;
 
@@ -129,17 +130,28 @@ Route::prefix('pages')->group(function () {
     Route::screen('/create', PageScreen::class)
         ->name('platform.page.create')
         ->breadcrumbs(
-            fn(Trail $trail) => $trail
-                ->parent('platform.page.list')
-                ->push('Создать')
+            fn(Trail $trail) => resolve(MenuService::class)
+                ->buildAdminPageBreadcrumbs(null, 'create')
+                ->reduce(
+                    fn($subTrail, $crumb) => $crumb['url']
+                        ? $subTrail->push($crumb['title'], $crumb['url'])
+                        : $subTrail->push($crumb['title']),
+                    $trail->parent('platform.index')
+                )
         );
 
     Route::screen('/edit/{id}', PageScreen::class)
         ->name('platform.page.edit')
         ->breadcrumbs(
-            fn(Trail $trail, $id) => $trail
-                ->parent('platform.page.list')
-                ->push("Редактирование", route('platform.page.edit', $id))
+            fn(Trail $trail, $id) =>
+            resolve(MenuService::class)
+                ->buildAdminPageBreadcrumbs(\App\Models\Page::find($id), 'edit')
+                ->reduce(
+                    fn($subTrail, $crumb) => $crumb['url']
+                        ? $subTrail->push($crumb['title'], $crumb['url'])
+                        : $subTrail->push($crumb['title']),
+                    $trail->parent('platform.index')
+                )
         );
 });
 
@@ -153,12 +165,20 @@ Route::screen('example', ExampleScreen::class)
         ->parent('platform.index')
         ->push('Example Screen'));
 
-Route::screen('/examples/form/fields', ExampleFieldsScreen::class)->name('platform.example.fields');
-Route::screen('/examples/form/advanced', ExampleFieldsAdvancedScreen::class)->name('platform.example.advanced');
-Route::screen('/examples/form/editors', ExampleTextEditorsScreen::class)->name('platform.example.editors');
-Route::screen('/examples/form/actions', ExampleActionsScreen::class)->name('platform.example.actions');
+Route::screen('/examples/form/fields', ExampleFieldsScreen::class)
+    ->name('platform.example.fields');
+Route::screen('/examples/form/advanced', ExampleFieldsAdvancedScreen::class)
+    ->name('platform.example.advanced');
+Route::screen('/examples/form/editors', ExampleTextEditorsScreen::class)
+    ->name('platform.example.editors');
+Route::screen('/examples/form/actions', ExampleActionsScreen::class)
+    ->name('platform.example.actions');
 
-Route::screen('/examples/layouts', ExampleLayoutsScreen::class)->name('platform.example.layouts');
-Route::screen('/examples/grid', ExampleGridScreen::class)->name('platform.example.grid');
-Route::screen('/examples/charts', ExampleChartsScreen::class)->name('platform.example.charts');
-Route::screen('/examples/cards', ExampleCardsScreen::class)->name('platform.example.cards');
+Route::screen('/examples/layouts', ExampleLayoutsScreen::class)
+    ->name('platform.example.layouts');
+Route::screen('/examples/grid', ExampleGridScreen::class)
+    ->name('platform.example.grid');
+Route::screen('/examples/charts', ExampleChartsScreen::class)
+    ->name('platform.example.charts');
+Route::screen('/examples/cards', ExampleCardsScreen::class)
+    ->name('platform.example.cards');

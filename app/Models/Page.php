@@ -118,4 +118,9 @@ class Page extends Model
 
         return 'file-text';
     }
+
+    public function parent()
+    {
+        return $this->belongsTo(Page::class, 'parent_id');
+    }
 }
