@@ -23,7 +23,9 @@ use App\Orchid\Screens\User\UserEditScreen;
 use App\Orchid\Screens\User\UserListScreen;
 use App\Orchid\Screens\User\UserProfileScreen;
 use App\Services\MenuService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Tabuna\Breadcrumbs\Trail;
 
 /*
@@ -154,6 +156,16 @@ Route::prefix('pages')->group(function () {
                 )
         );
 });
+
+Route::post('/upload/image', function (Request $request) {
+    $path = $request->file('image')->store('images', 'public');
+    return response()->json([
+        'success' => 1,
+        'file' => [
+            'url' => Storage::url($path)
+        ]
+    ]);
+})->name('platform.image');
 
 Route::screen('/settings', SettingListScreen::class)
     ->name('platform.settings');

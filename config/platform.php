@@ -130,6 +130,7 @@ return [
             '/vendor/orchid/css/dev-orchid.css'
         ],
         'scripts'     => [
+            '/public/build/assets/editor.js',
             '/vendor/orchid/js/orchid-menu.js'
         ],
     ],

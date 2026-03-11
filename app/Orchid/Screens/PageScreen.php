@@ -4,6 +4,7 @@ namespace App\Orchid\Screens;
 
 use App\Models\Page;
 use App\Models\Template;
+use App\Orchid\Fields\EditorJs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -198,7 +199,10 @@ class PageScreen extends Screen
                             ->title('Индексируется'),
                     ]),
                 ]),
-                'Блоки' => Layout::view('platform::dummy.block'),
+                'Блоки' => Layout::rows([
+                    EditorJs::make('page.blocks')
+                        ->label('Создатель блоков')
+                ]),
             ]),
 
             Layout::modal('removeChild', Layout::rows([]))->title('Подтвердите удаление'),
