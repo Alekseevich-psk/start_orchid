@@ -1,4 +1,15 @@
 @component($typeForm, get_defined_vars())
+    <style>
+        .codex-editor {
+            border: 1px solid #15141a1a;
+            border-radius: .125rem;
+        }
+
+        .codex-editor__redactor {
+            padding-bottom: 60px !important;
+        }
+    </style>
+
     <div data-controller="editor-js">
         <label class="form-label">{{ $label }}</label>
         <div data-editor-js-target="holder"></div>
@@ -6,7 +17,7 @@
             value='{{ old($name, $value ?? '{"time": ' . time() . ', "blocks": []}') }}' data-editor-js-target="input">
     </div>
 
-    @vite(['resources/js/editor.js']) <!-- ✅ Подключаем сборку -->
+    @vite(['resources/js/editor.js'])
 
     <script type="module">
         Orchid.register('editor-js', class extends Controller {

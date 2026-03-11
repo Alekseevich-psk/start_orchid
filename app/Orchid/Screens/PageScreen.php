@@ -130,12 +130,8 @@ class PageScreen extends Screen
                         ->title('Аннотация'),
                     TextArea::make('page.description')
                         ->title('Описание (SEO)'),
-                    Quill::make('page.content')
-                        ->title('Контент'),
-                    Cropper::make('page.image')
-                        ->title('Превью страницы')
-                        ->width(500)
-                        ->height(300),
+                    EditorJs::make('page.content')
+                        ->label('Контент'),
                 ]),
                 'Настройки' => Layout::rows([
                     Group::make([
@@ -198,10 +194,13 @@ class PageScreen extends Screen
                             ->sendTrueOrFalse()
                             ->title('Индексируется'),
                     ]),
+                    Cropper::make('page.image')
+                        ->title('Превью страницы')
+                        ->width(500)
+                        ->height(300),
                 ]),
                 'Блоки' => Layout::rows([
-                    EditorJs::make('page.blocks')
-                        ->label('Создатель блоков')
+                    
                 ]),
             ]),
 
