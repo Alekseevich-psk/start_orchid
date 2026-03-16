@@ -12,15 +12,17 @@ use Illuminate\Validation\ValidationException;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Actions\ModalToggle;
+use Orchid\Screen\Fields\Attach;
+use Orchid\Screen\Fields\CheckBox;
 use Orchid\Screen\Fields\Cropper;
 use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Fields\Group;
 use Orchid\Screen\Fields\Input;
-use Orchid\Screen\Fields\CheckBox;
-use Orchid\Screen\Fields\Upload;
+use Orchid\Screen\Fields\Picture;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\Switcher;
 use Orchid\Screen\Fields\TextArea;
+use Orchid\Screen\Fields\Upload;
 use Orchid\Screen\Screen;
 use Orchid\Screen\TD;
 use Orchid\Support\Facades\Layout;
@@ -37,7 +39,8 @@ class PageScreen extends Screen
     public function query($id = null): array
     {
         $page = $id ? Page::findOrFail($id) : new Page();
-
+        // $page->attachment('image');
+        // dd($page->attachment('attachments'));
         $children = collect();
 
         if ($page->exists && $page->is_category) {
@@ -195,15 +198,20 @@ class PageScreen extends Screen
                         ->sendTrueOrFalse()
                         ->title('Индексируется'),
                 ]),
-                Input::make('page.image')
-                    ->title('Debug: image value')
-                    ->disabled(),
-                Cropper::make('page.image')
+                // Input::make('page.image')
+                //     ->title('Debug: image value')
+                //     ->disabled(),
+                Attach::make('page.image')
                     ->title('Превью страницы')
                     ->width(500)
                     ->height(300)
-                    ->path('pages/images')
+                    ->targetRelativeUrl()
                     ->required(false),
+                // Upload::make('image')
+                //     ->title('Основное изображение 1170x620px')
+                //     ->acceptedFiles('image/*')
+                //     ->maxFiles(1)
+                // Attach::make('images'),
             ]),
         ];
 
@@ -235,7 +243,10 @@ class PageScreen extends Screen
 
         $page->fill($data)->save();
 
-        // $page->syncMedia($request, 'image');
+        $page->attachment()->sync(
+            $request->input('picture', []), // ← ключ из формы
+            'image'                         // ← тег
+        );
 
         Toast::info('Страница сохранена');
 
@@ -247,12 +258,28 @@ class PageScreen extends Screen
      */
     private function buildCustomFields(): array
     {
-        $modelType = 'page';
-        $modelId = 1; // Измените на нужный или получите из request
+        $page = $this->page;
+        $fields = collect();
 
-        $fields = Field::where('model_type', $modelType)
-            ->where('model_id', $modelId)
-            ->get();
+        // 1. Поля из шаблона
+        if ($page->template_id) {
+            $templateFields = Field::where('model_type', 'template')
+                ->where('model_id', $page->template_id)
+                ->get();
+
+            $fields = $fields->concat($templateFields);
+        }
+
+        // 2. Поля из самой страницы (имеют приоритет)
+        if ($page->id) {
+            $pageFields = Field::where('model_type', 'page')
+                ->where('model_id', $page->id)
+                ->get();
+
+            // Удаляем дубли по field_id — оставляем только из страницы
+            $fields = $fields->reject(fn($field) => $pageFields->contains('field_id', $field->field_id))
+                ->concat($pageFields);
+        }
 
         $formFields = [];
 
