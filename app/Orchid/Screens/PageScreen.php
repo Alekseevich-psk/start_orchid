@@ -258,6 +258,7 @@ class PageScreen extends Screen
      */
     private function buildCustomFields(): array
     {
+        $formFields = [];
         $page = $this->page;
         $fields = collect();
 

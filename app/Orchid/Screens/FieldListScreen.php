@@ -61,7 +61,7 @@ class FieldListScreen extends Screen
     {
         return [
             Layout::table('fields', [
-                TD::make('field_id', 'ID поля'),
+                TD::make('field_id', 'Ключ поля'),
                 TD::make('title', 'Заголовок'),
                 TD::make('type', 'Тип'),
                 TD::make('model_type', 'Тип модели'),
@@ -95,7 +95,7 @@ class FieldListScreen extends Screen
             // Модальное окно: Создание
             Layout::modal('createFieldModal', Layout::rows([
                 Input::make('field.field_id')
-                    ->title('ID поля')
+                    ->title('Ключ поля')
                     ->placeholder('Например: title')
                     ->required(),
 
@@ -136,7 +136,7 @@ class FieldListScreen extends Screen
             // Модальное окно: Редактирование
             Layout::modal('editFieldModal', Layout::rows([
                 Input::make('field.field_id')
-                    ->title('ID поля')
+                    ->title('Ключ поля')
                     ->required(),
 
                 Input::make('field.title')
