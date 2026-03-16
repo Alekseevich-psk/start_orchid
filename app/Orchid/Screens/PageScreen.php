@@ -243,9 +243,9 @@ class PageScreen extends Screen
 
         $page->fill($data)->save();
 
-        $page->attachment()->sync(
-            $request->input('picture', []), // ← ключ из формы
-            'image'                         // ← тег
+        $page->attachments()->sync(
+            $request->input('picture', []),
+            'image'
         );
 
         Toast::info('Страница сохранена');
@@ -315,9 +315,9 @@ class PageScreen extends Screen
                     break;
 
                 case 'image':
-                    $formFields[] = Upload::make($name)
+                    $formFields[] = Picture::make($name)
                         ->title($field->title)
-                        ->acceptedFiles('image/*');
+                        ->maxFiles(1);
                     break;
 
                 case 'file':
