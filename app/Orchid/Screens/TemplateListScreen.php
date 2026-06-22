@@ -62,18 +62,39 @@ class TemplateListScreen extends Screen
                     ),
                 TD::make('path', 'Путь'),
                 TD::make('created_at', 'Создан')->sort(),
-                TD::make('')
-                    ->render(
-                        fn(Template $template) =>
-                        ModalToggle::make('')
-                            ->icon('trash')
+
+                TD::make('actions', 'Действия')
+                    ->align(TD::ALIGN_CENTER)
+                    ->width('180px')
+                    ->render(function (Template $template) {
+                        return
+                            Link::make("Редактировать")
+                            ->route('platform.template.edit', $template->id)
+                            ->icon('pencil')
+
+                            . " "
+
+                            . ModalToggle::make('Удалить')
                             ->modal('removeTemplate')
-                            ->modalTitle("Удалить шаблон \"{$template->title}\"?")
-                            ->method('remove', ['id' => $template->id])
-                            ->confirm('Удалить навсегда?')
-                            ->class('btn-td')
-                    )
-                    ->align(TD::ALIGN_RIGHT)->class('btn-td-wrap'),
+                            ->modalTitle("Удалить шаблон «{$template->title}»?")
+                            ->method('remove')
+                            ->asyncParameters(['id' => $template->id])
+                            ->icon('trash')
+                            ->confirm('Удалить навсегда?');
+                    }),
+
+                // TD::make('')
+                //     ->render(
+                //         fn(Template $template) =>
+                //         ModalToggle::make('')
+                //             ->icon('trash')
+                //             ->modal('removeTemplate')
+                //             ->modalTitle("Удалить шаблон \"{$template->title}\"?")
+                //             ->method('remove', ['id' => $template->id])
+                //             ->confirm('Удалить навсегда?')
+                //             ->class('btn-td')
+                //     )
+                //     ->align(TD::ALIGN_RIGHT)->class('btn-td-wrap'),
 
             ]),
 

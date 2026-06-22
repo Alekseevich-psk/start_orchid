@@ -5,8 +5,10 @@ namespace App\Orchid\Screens;
 use App\Models\Template;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Orchid\Screen\Actions\Button;
+use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Screen;
@@ -16,7 +18,7 @@ use Orchid\Support\Facades\Toast;
 class TemplateScreen extends Screen
 {
 
-    public $template;
+    public ?Template $template = null;
 
     /**
      * Fetch data to be displayed on the screen.
@@ -30,18 +32,16 @@ class TemplateScreen extends Screen
         $excludedDirs = ['vendor', 'orchid', 'components', 'emails', 'layouts'];
 
         $bladeFiles = collect(File::allFiles(resource_path('views')))
-            ->map(function ($file) {
-                $path = str_replace('.blade.php', '', $file->getRelativePathname());
-                return str_replace(DIRECTORY_SEPARATOR, '/', $path);
-            })
-            ->reject(function ($path) use ($excludedDirs) {
-                foreach ($excludedDirs as $dir) {
-                    if (str_starts_with($path, $dir . '/') || $path === $dir) {
-                        return true;
-                    }
-                }
-                return false;
-            })
+            ->filter(fn($file) => str_ends_with($file->getFilename(), '.blade.php'))
+            ->map(fn($file) => str_replace(
+                DIRECTORY_SEPARATOR,
+                '/',
+                Str::replaceLast('.blade.php', '', $file->getRelativePathname())
+            ))
+            ->reject(fn($path) => collect($excludedDirs)->contains(
+                fn($dir) =>
+                str_starts_with($path, $dir . '/') || $path === $dir
+            ))
             ->sort()
             ->values()
             ->toArray();
@@ -72,6 +72,10 @@ class TemplateScreen extends Screen
     public function commandBar(): iterable
     {
         return [
+            Link::make('Назад к списку')
+                ->icon('arrow-left')
+                ->route('platform.template.list'),
+                
             Button::make('Сохранить')
                 ->icon('check')
                 ->method('save')
