@@ -8,7 +8,7 @@
 
 1. **`app/Services/SettingService.php`** — основной сервис
 2. **Обновление `app/Models/Setting.php`** — добавлены статические методы
-3. **Обновление `app/Helpers/page_helper.php`** — добавлены helper-функции
+3. **Обновление `app/Helpers/PageHelper.php`** — добавлены helper-функции
 
 ---
 
