@@ -1,11 +1,3 @@
 @use "./mixins/fonts" as *;
 
-@include font("Onest", "Onest-Black", "900", "Normal");
-@include font("Onest", "Onest-ExtraBold", "800", "Normal");
-@include font("Onest", "Onest-Light", "300", "Normal");
-@include font("Onest", "Onest-ExtraLight", "200", "Normal");
-@include font("Onest", "Onest-Medium", "500", "Normal");
 @include font("Onest", "Onest-Regular", "400", "Normal");
-@include font("Onest", "Onest-SemiBold", "600", "Normal");
-@include font("Onest", "Onest-Thin", "100", "Normal");
-@include font("Onest", "Onest-Bold", "700", "Normal");

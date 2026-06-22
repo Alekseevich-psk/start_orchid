@@ -19,18 +19,7 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
-        "@editorjs/checklist": "^1.6.0",
-        "@editorjs/code": "^2.9.4",
-        "@editorjs/editorjs": "^2.31.4",
-        "@editorjs/embed": "^2.8.0",
-        "@editorjs/header": "^2.8.8",
-        "@editorjs/image": "^2.10.3",
-        "@editorjs/paragraph": "^2.11.7",
-        "@editorjs/quote": "^2.7.6",
-        "@editorjs/table": "^2.4.5",
-        "@editorjs/warning": "^1.4.1",
         "@fancyapps/ui": "^6.1.13",
-        "editorjs-list": "^2.1.4",
         "fancybox": "^3.0.1",
         "imask": "^7.6.1",
         "swiper": "^12.1.2",
