@@ -16,5 +16,10 @@ class TemplateSeeder extends Seeder
             'title'       => 'Главная',
             'path'  => 'resources/views/index.blade.php',
         ]);
+
+        Template::firstOrCreate([
+            'title'       => 'Контакты',
+            'path'  => 'resources/views/contacts.blade.php',
+        ]);
     }
 }

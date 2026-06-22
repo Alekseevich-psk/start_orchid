@@ -18,11 +18,25 @@ class PageHomeSeeder extends Seeder
             'title'         => 'Главная',
             'content'       => '<p>Добро пожаловать на главную страницу!</p>',
             'menu_order'    => 1,
-            'template_id'   => 1, 
+            'template_id'   => 1,
             'parent_id'        => 0,
             'in_menu'       => true,
             'is_published'  => true,
-            'is_category'   => false, 
+            'is_category'   => false,
+            'type'          => 'page'
+        ]);
+
+        Page::firstOrCreate([
+            'slug' => 'contacts',
+        ], [
+            'title'         => 'Контакты',
+            'content'       => '<p>Контактная информация</p>',
+            'menu_order'    => 2,
+            'template_id'   => 1,
+            'parent_id'     => 0,
+            'in_menu'       => true,
+            'is_published'  => true,
+            'is_category'   => false,
             'type'          => 'page'
         ]);
     }
