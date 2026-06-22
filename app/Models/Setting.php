@@ -47,13 +47,13 @@ class Setting extends Model
     }
 
     /**
-     * Статический метод для обновления настройки
+     * Статический метод для установки значения настройки
      *
      * @param string $key
      * @param mixed $value
      * @return Setting|null
      */
-    public static function update(string $key, mixed $value): ?self
+    public static function set(string $key, mixed $value): ?self
     {
         $setting = self::firstOrCreate(['key' => $key]);
         $setting->value = $value;
