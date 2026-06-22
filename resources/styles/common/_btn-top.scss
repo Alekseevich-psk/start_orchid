@@ -1,0 +1,67 @@
+@use "./../base" as *;
+
+.btn-top {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    cursor: pointer;
+    user-select: none;
+
+    &__ico {
+        position: relative;
+        display: block;
+        min-width: 54px;
+        max-width: 54px;
+        height: 54px;
+        margin-right: 20px;
+        background-color: $white;
+        border-radius: 50%;
+
+        @include forMobile {
+            min-width: 34px;
+            max-width: 34px;
+            height: 34px;
+            margin-right: 12px;
+        }
+
+        &::after {
+            position: absolute;
+            content: "";
+            display: block;
+            z-index: 2;
+            width: 24px;
+            height: 24px;
+            top: 50%;
+            left: 50%;
+            background: url('/public/svg/btn-ico-sl-arrow.svg') no-repeat center / contain;
+            transform: translate(-50%, -50%) rotate(90deg);
+
+            @include forMobile {
+                width: 16px;
+                height: 16px;
+            }
+        }
+    }
+
+    &__text {
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 75%;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: #fff;
+
+        @include forMobile {
+            display: none;
+        }
+    }
+
+    &:hover {
+        .btn-top {
+            &__text {
+                text-decoration: underline;
+            }
+        }
+    }
+
+}

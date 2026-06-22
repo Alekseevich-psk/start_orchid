@@ -3,25 +3,34 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Orchid\Filters\Filterable;
+use Orchid\Screen\AsSource;
 
 class Setting extends Model
 {
-    protected $fillable = ['key', 'value', 'group', 'type'];
+    use HasFactory, AsSource, Filterable;
+
+    protected $fillable = ['title','key', 'value', 'group', 'type'];
 
     // Пример: автоматическое приведение типов
     protected $casts = [
         'value' => 'json',
     ];
 
-    // Скоуп: только булевы значения
-    public function scopeBoolean($query)
-    {
-        return $query->where('type', 'boolean');
-    }
+    // Разрешённые фильтры
+    protected $allowedFilters = [
+        'key',
+        'group',
+        'title',
+    ];
 
-    // Скоуп: по группе
-    public function scopeGroup($query, string $group)
-    {
-        return $query->where('group', $group);
-    }
+    // Поля для сортировки
+    protected $allowedSorts = [
+        'key',
+        'group',
+        'title',
+        'created_at',
+    ];
+
 }

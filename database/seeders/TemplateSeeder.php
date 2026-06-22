@@ -13,8 +13,8 @@ class TemplateSeeder extends Seeder
     public function run(): void
     {
         Template::firstOrCreate([
-            'title'       => 'default',
-            'path'  => 'resources/views/welcome.blade.php',
+            'title'       => 'Главная',
+            'path'  => 'resources/views/index.blade.php',
         ]);
     }
 }

@@ -1,0 +1,122 @@
+@use "./../base" as *;
+
+html,
+body {
+    padding: 0;
+    margin: 0;
+    font-family: $fontMain, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 120%;
+    background-color: $white;
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+* {
+    box-sizing: border-box;
+    // border: 1px solid rgba(128, 128, 128, 0.137);
+}
+
+section {
+    padding: 80px 20px;
+    max-width: 1920px;
+    margin: 0 auto;
+
+    @include forSmDesktop {
+        padding: 30px 0;
+    }
+
+    @include forTablet {
+        padding-top: 30px;
+        padding-bottom: 30px;
+    }
+}
+
+sup {
+    font-size: 10px;
+    display: inline-block;
+    vertical-align: super;
+}
+
+button,
+textarea,
+input,
+button span {
+    font-family: $fontMain, Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 120%;
+}
+
+a {
+    font-family: $fontMain, Arial, Helvetica, sans-serif;
+    line-height: 120%;
+}
+
+[name="first-name"] {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+}
+
+.bg-gray {
+    background: #f3f3f3;
+
+    @include forLarge {
+        border-radius: var(--br);
+    }
+}
+
+.swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+
+    &-active {
+        background: $active;
+    }
+}
+
+.swiper-container {
+    overflow: hidden;
+}
+
+.container {
+    position: relative;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 32px;
+    font-size: 16px;
+    line-height: 100%;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    p {
+        line-height: 120%;
+    }
+
+    @include forTablet {
+        padding: 0 10px;
+    }
+
+    @include forMobile {
+        max-width: 480px;
+    }
+}

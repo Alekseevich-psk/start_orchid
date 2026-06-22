@@ -1,0 +1,28 @@
+@use "~/styles/base" as *;
+
+.not-found {
+    text-align: center;
+
+    &__title {
+        font-weight: 700;
+        font-size: vw(160);
+        color: $active;
+
+        @include forLarge {
+            font-size: 160px;
+        }
+
+        @include forTablet {
+            font-size: 64px;
+        }
+    }
+
+    &__link {
+        color: $black;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+}

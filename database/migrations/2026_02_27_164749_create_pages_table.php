@@ -23,7 +23,8 @@ return new class extends Migration
             $table->string('type')->default('page');                // Тип страницы
             $table->boolean('is_category')->default(false);         // Можно как категория
             $table->boolean('indexed')->default(true);              // Индексация страницы
-            $table->integer('parent_id')->default(0);                  // id родителя
+            $table->integer('parent_id')->default(0);               // id родителя
+            $table->integer('template_child_id')->default(0);       // id шаблона для дочерних страниц
             $table->string('slug')->unique();                       // URL
             $table->string('ico')->nullable();                      // ico menu
             $table->boolean('is_published')->default(true);         // Опубликовано
@@ -32,6 +33,7 @@ return new class extends Migration
             $table->integer('menu_order')->default(0);              // Порядок в меню
             $table->string('alias')->nullable()->unique();          // Псевдоним / алиас
             $table->timestamp('published_at')->nullable();          // Дата публикации
+            $table->boolean('in_slug_path')->default(true);            // Участвует в формировании slug дочерних страниц
             $table->timestamp('unpublished_at')->nullable();        // Дата окончания публикации
             $table->json('allowed_roles')->nullable();              // Роли с доступом
             $table->timestamps();
@@ -43,7 +45,7 @@ return new class extends Migration
             $table->index('published_at');
             $table->index('unpublished_at');
             $table->index('template_id');
-            $table->index('parent');
+            $table->index('parent_id');
             $table->index('alias');
         });
     }

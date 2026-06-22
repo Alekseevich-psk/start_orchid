@@ -17,6 +17,7 @@ class Field extends Model
         'field_id',
         'title',
         'type',
+        'options',
         'model_type',
         'model_id',
     ];

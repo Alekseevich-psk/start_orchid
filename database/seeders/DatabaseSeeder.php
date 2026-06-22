@@ -21,12 +21,5 @@ class DatabaseSeeder extends Seeder
         $this->call(PageHomeSeeder::class);
         $this->call(SettingSeeder::class); 
         $this->call(TemplateSeeder::class); 
-        
-        // User::factory(10)->create();
-
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
     }
 }

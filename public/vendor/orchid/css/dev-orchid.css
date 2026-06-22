@@ -28,3 +28,9 @@
 .btn-td-wrap .form-group {
     width: 22px;
 }
+
+[data-controller="matrix"] img{
+    max-height: 72px;
+    max-width: auto;
+    object-fit: contain;
+}

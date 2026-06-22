@@ -2,8 +2,9 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use App\Services\MenuService;
+use App\Services\DemoJsonService;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,7 +24,12 @@ class AppServiceProvider extends ServiceProvider
         // Share menu tree with views
         view()->composer('*', function ($view) {
             $menuTree = app(MenuService::class)->getFrontendMenuTree();
-            $view->with('siteMenuTree', $menuTree);
+            $demoJson = new DemoJsonService();
+
+            $view->with([
+                'siteMenuTree' => $menuTree,
+                'demoJson' => $demoJson
+            ]);
         });
     }
 }

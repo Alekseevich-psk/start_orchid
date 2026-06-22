@@ -1,0 +1,25 @@
+@use "./../base" as *;
+
+.s-title {
+    font-weight: 500;
+    font-size: 44px;
+    line-height: 120% !important;
+    padding-bottom: vw(40);
+
+    @include forLarge {
+        padding-bottom: 40px;
+    }
+
+    @include forSmDesktop {
+        font-size: 38px;
+    }
+
+    @include forTablet {
+        font-size: 28px;
+    }
+
+    @include forMobile {
+        font-size: 24px;
+        padding-bottom: 18px;
+    }
+}

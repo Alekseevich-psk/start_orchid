@@ -1,0 +1,13 @@
+@use "~/styles/base" as *;
+
+.sl-arrows {
+    &__arrow {
+        cursor: pointer;
+        position: relative;
+
+        &.swiper-button-disabled {
+            cursor: inherit;
+            opacity: 0.6;
+        }
+    }
+}

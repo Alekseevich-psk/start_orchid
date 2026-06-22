@@ -11,6 +11,8 @@ use App\Orchid\Screens\Examples\ExampleGridScreen;
 use App\Orchid\Screens\Examples\ExampleLayoutsScreen;
 use App\Orchid\Screens\Examples\ExampleScreen;
 use App\Orchid\Screens\Examples\ExampleTextEditorsScreen;
+use App\Orchid\Screens\FeedbackScreen;
+use App\Orchid\Screens\FieldListScreen;
 use App\Orchid\Screens\PageListScreen;
 use App\Orchid\Screens\PageScreen;
 use App\Orchid\Screens\PlatformScreen;
@@ -22,7 +24,6 @@ use App\Orchid\Screens\TemplateScreen;
 use App\Orchid\Screens\User\UserEditScreen;
 use App\Orchid\Screens\User\UserListScreen;
 use App\Orchid\Screens\User\UserProfileScreen;
-use App\Orchid\Screens\FieldListScreen;
 use App\Services\MenuService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -119,6 +120,8 @@ Route::prefix('templates')->group(function () {
                 ->push("Редактирование", route('platform.template.edit', $id))
         );
 });
+
+Route::screen('/feedback', FeedbackScreen::class)->name('platform.feedback');
 
 // Группа "Страницы"
 Route::prefix('pages')->group(function () {

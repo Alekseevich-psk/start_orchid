@@ -7,27 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Orchid\Filters\Filterable;
 use Orchid\Screen\AsSource;
 use Orchid\Attachment\Attachable;
+use Orchid\Attachment\Models\Attachment;
 
 class Page extends Model
 {
     use HasFactory, AsSource, Filterable, Attachable;
 
-    /**
-     * Scope a query to only include published and indexed pages.
-     */
-    public function scopePublished($query)
-    {
-        return $query->where('is_published', true)
-            ->where('indexed', true)
-            ->where(function ($q) {
-                $q->whereNull('published_at')
-                    ->orWhere('published_at', '<=', now());
-            })
-            ->where(function ($q) {
-                $q->whereNull('unpublished_at')
-                    ->orWhere('unpublished_at', '>=', now());
-            });
-    }
+    protected $appends = ['url'];
 
     protected $fillable = [
         'title',
@@ -50,6 +36,8 @@ class Page extends Model
         'published_at',
         'unpublished_at',
         'allowed_roles',
+        'in_slug_path',
+        'template_child_id',
     ];
 
     protected $casts = [
@@ -60,6 +48,7 @@ class Page extends Model
         'is_published'   => 'boolean',
         'is_category'    => 'boolean',
         'in_menu'        => 'boolean',
+        'in_slug_path'   => 'boolean',
         'indexed'        => 'boolean',
     ];
 
@@ -93,35 +82,48 @@ class Page extends Model
     protected $attributes = [
         'indexed' => true,
         'in_menu' => true,
+        'in_slug_path' => true,
         'is_published' => true,
         'is_category' => false,
     ];
 
-    // Связь с шаблоном
+    public function getUrlAttribute(): string
+    {
+        return '/' . ltrim($this->slug ?? $this->alias, '/');
+    }
+
     public function template()
     {
         return $this->belongsTo(Template::class);
     }
 
-    public function getMenuIconAttribute()
-    {
-        if ($this->is_category) {
-            return 'folder';
-        }
-
-        if ($this->ico) {
-            return $this->ico;
-        }
-
-        if ($this->template_id && $this->template->icon) {
-            return $this->template->icon;
-        }
-
-        return 'file-text';
-    }
-
     public function parent()
     {
         return $this->belongsTo(Page::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Page::class, 'parent_id');
+    }
+
+    public function imageAttachment()
+    {
+        return $this->hasOne(Attachment::class, 'id', 'image')
+            ->withDefault();
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('is_published', true)
+            ->where('indexed', true)
+            ->where(function ($q) {
+                $q->whereNull('published_at')
+                    ->orWhere('published_at', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('unpublished_at')
+                    ->orWhere('unpublished_at', '>=', now());
+            });
     }
 }

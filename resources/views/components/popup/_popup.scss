@@ -1,0 +1,10 @@
+@use "~/styles/base" as *;
+
+.popup {
+    display: none;
+
+    &.fancybox__content {
+        border-radius: 4px;
+    }
+
+}

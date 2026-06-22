@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Validation\Rule;
 use Orchid\Screen\Actions\Button;
-use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Screen;
@@ -26,14 +25,22 @@ class TemplateScreen extends Screen
      */
     public function query($id = null): array
     {
-        // 1. Загружаем шаблон из БД или создаём новый
         $this->template = $id ? Template::findOrFail($id) : new Template();
 
-        // 2. Получаем все .blade.php файлы из resources/views
+        $excludedDirs = ['vendor', 'orchid', 'components', 'emails', 'layouts'];
+
         $bladeFiles = collect(File::allFiles(resource_path('views')))
             ->map(function ($file) {
                 $path = str_replace('.blade.php', '', $file->getRelativePathname());
-                return str_replace(DIRECTORY_SEPARATOR, '/', $path); 
+                return str_replace(DIRECTORY_SEPARATOR, '/', $path);
+            })
+            ->reject(function ($path) use ($excludedDirs) {
+                foreach ($excludedDirs as $dir) {
+                    if (str_starts_with($path, $dir . '/') || $path === $dir) {
+                        return true;
+                    }
+                }
+                return false;
             })
             ->sort()
             ->values()

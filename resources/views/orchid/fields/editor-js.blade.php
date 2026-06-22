@@ -17,7 +17,7 @@
             value='{{ old($name, $value ?? '{"time": ' . time() . ', "blocks": []}') }}' data-editor-js-target="input">
     </div>
 
-    @vite(['resources/js/editor.js'])
+    @vite(['resources/scripts/common/editor.js'])
 
     <script type="module">
         Orchid.register('editor-js', class extends Controller {

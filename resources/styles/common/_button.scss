@@ -1,0 +1,280 @@
+@use "./../base" as *;
+
+.button {
+    position: relative;
+    text-transform: uppercase;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    transition: $transition;
+
+    &__text {
+        line-height: 1;
+        font-family: var(--font-family);
+        font-weight: 400;
+        font-size: 18px;
+        letter-spacing: 0.03em;
+        padding: 0 30px;
+        transition: $transition;
+        color: $black;
+
+        @include forTablet {
+            font-size: 15px;
+        }
+
+        @include forMobile {
+            font-size: 13px;
+        }
+    }
+
+    &__ico {
+        min-width: 44px;
+        max-width: 44px;
+        height: 44px;
+        transition: $transition;
+
+        @include forMobile {
+            min-width: 38px;
+            max-width: 38px;
+            height: 38px;
+        }
+    }
+
+    &--sl {
+        background-color: $gray;
+        border-radius: 50px;
+        height: 52px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .button {
+            &__ico {
+                margin-left: 12px;
+                position: relative;
+                border-radius: 50%;
+                overflow: hidden;
+
+                &::before,
+                &::after {
+                    position: absolute;
+                    display: block;
+                    content: "";
+                    transition: $transition;
+                    border-radius: 50%;
+                    z-index: 1;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                }
+
+                &::after {
+                    z-index: 2;
+                    background-color: $active;
+                    mask: url('/public/svg/ico-select-arrow.svg') no-repeat center / 25%;
+                }
+            }
+
+            &__text {
+                text-align: left;
+                text-transform: none;
+                padding-right: 0;
+                
+                @include forMobile {
+                    padding-left: 12px;
+                }
+            }
+        }
+
+        &:hover {
+            .button {
+                &__ico {
+                    &::before {
+                        background-color: $active;
+                    }
+
+                    &::after {
+                        background-color: $white;
+                    }
+                }
+
+                &__text {}
+            }
+        }
+    }
+
+    &--more {
+        .button {
+            display: flex;
+            align-items: center;
+
+            &__text {
+                font-weight: 400;
+                text-transform: none;
+                position: relative;
+                padding-left: 0;
+                padding-right: 20px;
+
+                @include forMobile {
+                    white-space: nowrap;
+                    font-size: 13px;
+                    opacity: 0.9;
+                    padding-right: 10px;
+                }
+            }
+
+            &__ico {
+                position: relative;
+                display: block;
+                min-width: 52px;
+                max-width: 52px;
+                height: 52px;
+                border-radius: 50%;
+                background-color: $active;
+
+                @include forMobile {
+                    min-width: 38px;
+                    max-width: 38px;
+                    height: 38px;
+                }
+
+                &::after {
+                    position: absolute;
+                    display: block;
+                    content: "";
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 10px;
+                    height: 10px;
+                    background: $white;
+                    mask: url('/public/svg/btn-ico-arrow.svg') no-repeat center / contain;
+                }
+            }
+        }
+
+        &:hover {
+            .button {
+                &__text {
+                    text-decoration: underline;
+                }
+
+                &__ico {
+                    background-color: $activeHover;
+                }
+            }
+        }
+    }
+
+    &--sub,
+    &--bc,
+    &--link {
+        background-color: $white;
+        padding: 4px;
+        border-radius: 30px;
+
+        .button {
+            &__text {
+                color: $active;
+            }
+
+            &__ico {
+                position: relative;
+                border-radius: 50%;
+                border: 1px solid #374d4341;
+
+                &::after {
+                    position: absolute;
+                    display: block;
+                    content: "";
+                    top: 50%;
+                    left: 50%;
+                    width: 8px;
+                    height: 8px;
+                    background-color: $active;
+                    mask: url('/public/svg/btn-ico-arrow.svg') no-repeat center / contain;
+                    transform: translate(-50%, -50%);
+                }
+            }
+        }
+
+        &:hover {
+            .button {
+                &__ico {
+                    border: 2px solid $active;
+                    background-color: $active;
+
+                    &::after {
+                        background-color: $white;
+                    }
+                }
+            }
+        }
+    }
+
+    &--link {
+        .button {
+            &__text {
+                padding-left: 0;
+            }
+
+            &__ico {
+                border-color: $gray;
+                background-color: $gray;
+            }
+        }
+    }
+
+    &--bc {
+        background-color: $active;
+
+        @include forMobile {
+            width: 100%;
+            justify-content: space-between
+        }
+
+        .button {
+            &__text {
+                font-weight: 400;
+                color: $white;
+
+                @include forMobile {
+                    padding-left: 14px;
+                }
+            }
+
+            &__ico {
+                border-color: $gray;
+
+                &::after {
+                    background-color: $white;
+                }
+            }
+
+        }
+
+        &:hover {
+            .button {
+
+                &__text {
+                    font-weight: 400;
+                    color: $white;
+                }
+
+                &__ico {
+                    border-color: $white;
+                    background-color: $white;
+
+                    &::after {
+                        background-color: $active;
+                    }
+                }
+
+            }
+        }
+    }
+}

@@ -1,0 +1,16 @@
+@use "~/styles/base" as *;
+
+.header {
+
+    &.open-menu {}
+
+    &.scroll {}
+
+    &__fake {}
+
+    &__fixed {}
+
+    &__wrapper {}
+
+    &__inner {}
+}

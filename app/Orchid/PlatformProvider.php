@@ -38,8 +38,16 @@ class PlatformProvider extends OrchidServiceProvider
     public function menu(): array
     {
         return [
+            Menu::make('Главный экран')
+                ->icon('bs.book')
+                ->route(config('platform.index')),
+                
             // Динамическое меню сайта
             $this->buildSiteMenu(),
+
+            Menu::make('Сообщения')
+                ->icon('envelope')
+                ->route('platform.feedback'),
 
             // Системные настройки
             Menu::make('Настройки')
@@ -64,9 +72,6 @@ class PlatformProvider extends OrchidServiceProvider
                         ->route('platform.systems.roles')
                         ->permission('platform.systems.roles')
                         ->divider(),
-                    Menu::make('Документация')
-                        ->icon('bs.book')
-                        ->route(config('platform.index')),
                 ]),
         ];
     }

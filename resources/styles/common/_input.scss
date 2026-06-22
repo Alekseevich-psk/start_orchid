@@ -1,0 +1,105 @@
+@use "./../base" as *;
+
+.input {
+    display: block;
+    width: 100%;
+
+    label {
+        font-weight: 400;
+        font-size: 15px;
+        line-height: 120%;
+        color: #191b1d71;
+    }
+
+    input {
+        display: block;
+        font-size: 18px;
+        padding: 12px 0;
+        transition: $transition;
+        border-bottom: 1px solid $gray;
+
+        @include forMobile {
+            padding: 8px 0;
+            font-size: 16px;
+        }
+
+        &:hover {
+            border-color: $active;
+        }
+
+        &:focus {
+            border-color: $activeHover;
+        }
+    }
+}
+
+.checkbox {
+    position: absolute;
+    opacity: 0;
+    z-index: -1;
+    width: 1px;
+    height: 1px;
+
+    &~label {
+        position: relative;
+        cursor: pointer;
+        display: block;
+        user-select: none;
+
+        &::before,
+        &::after {
+            position: absolute;
+            top: -4px;
+            left: 0;
+            content: '';
+            display: block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid $active;
+            border-radius: 4px;
+            margin-top: 2px;
+            background-color: #fff;
+            transition: all 0.2s ease;
+        }
+
+        &::after {
+            background-color: transparent;
+            border: none;
+        }
+
+        p {
+            user-select: none;
+            cursor: pointer;
+            padding-left: 32px;
+            font-size: 16px;
+
+            @include forSmDesktop {
+                font-size: 14px;
+            }
+
+            @include forMobile {
+                font-size: 13px;
+            }
+        }
+
+        a {
+            color: $link;
+            text-decoration: underline;
+        }
+    }
+
+    &:checked~label {
+        &::after {
+            background: url('/public/svg/ico-ok.svg') no-repeat center / 100% 40%;
+        }
+    }
+
+}
+
+.textarea {
+    display: block;
+    padding: 20px;
+    border-radius: var(--br);
+    border: 1px solid $gray;
+
+}

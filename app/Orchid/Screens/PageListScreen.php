@@ -83,7 +83,7 @@ class PageListScreen extends Screen
                         ModalToggle::make('')
                             ->icon('trash')
                             ->modal('removePage')
-                            ->modalTitle("Удалить шаблон \"{$page->title}\"?")
+                            ->modalTitle("Удалить \"{$page->title}\"?")
                             ->method('remove', ['id' => $page->id])
                             ->confirm('Удалить навсегда?')
                             ->class('btn-td')

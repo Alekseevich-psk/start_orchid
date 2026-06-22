@@ -1,0 +1,26 @@
+@forward "/node_modules/@fancyapps/ui/dist/fancybox/fancybox";
+@forward "/node_modules/toastify-js/src/toastify.css";
+@forward "/node_modules/swiper/swiper-bundle";
+
+
+@forward "./root";
+@forward "./main/reset";
+@forward "./main/setting";
+
+@forward "./fonts";
+
+@forward "./common/button";
+@forward "./common/s-title";
+@forward "./common/input";
+@forward "./common/content";
+@forward "./common/btn-top";
+
+@forward "./../views/components/header/header";
+@forward "./../views/components/footer/footer";
+@forward "./../views/components/sl-arrows/sl-arrows";
+@forward "./../views/components/breadcrumbs/breadcrumbs";
+@forward "./../views/components/pagination/pagination";
+@forward "./../views/components/popup/popup";
+@forward "./../views/components/cookie-notice/cookie-notice";
+
+@forward "./../views/sections/main/main";

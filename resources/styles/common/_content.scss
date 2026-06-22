@@ -1,0 +1,163 @@
+@use "./../base" as *;
+
+.content {
+    margin: 0 auto;
+    max-width: 1024px;
+
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-family);
+        padding: 32px 0 24px;
+        color: $black;
+        font-weight: 500;
+
+        @include forTablet {
+            padding: 24px 0 16px;
+        }
+    }
+
+    h1 {
+        font-size: 44px;
+        line-height: 100%;
+        color: $black;
+
+        @include forTablet {
+            font-size: 40x;
+        }
+
+        @include forMobile {
+            font-size: 36px;
+        }
+    }
+
+    h2 {
+        font-size: 40px;
+        line-height: 110%;
+
+        @include forTablet {
+            font-size: 36px;
+        }
+
+        @include forMobile {
+            font-size: 32px;
+        }
+    }
+
+    h3 {
+        font-size: 36px;
+        line-height: 110%;
+
+        @include forTablet {
+            font-size: 30px;
+        }
+
+        @include forMobile {
+            font-size: 24px;
+        }
+    }
+
+    h4 {
+        font-weight: 500;
+        font-size: 30px;
+        line-height: 110%;
+        color: $black;
+        padding: 20px 0 16px;
+
+        @include forTablet {
+            font-size: 26px;
+        }
+
+        @include forMobile {
+            font-size: 24px;
+        }
+    }
+
+    h5,
+    h6 {
+        font-weight: 400;
+        font-size: 22px;
+        line-height: 110%;
+        color: $black;
+        padding: 20px 0 16px;
+
+        @include forTablet {
+            font-size: 18px;
+        }
+
+        @include forMobile {
+            font-size: 16px;
+        }
+    }
+
+    a {
+        font-weight: 400;
+        font-size: 18px;
+        display: inline-block;
+        line-height: 120%;
+        color: #444;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    p {
+        font-size: 16px;
+        line-height: 120%;
+        color: $black;
+        margin-bottom: 16px;
+    }
+
+    ul {
+        li {
+            &::before {
+                position: relative;
+                display: inline-block;
+                vertical-align: top;
+                content: "";
+                margin-top: 8px;
+                margin-right: 8px;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: $active;
+            }
+        }
+    }
+
+    ol {
+        counter-reset: count;
+        list-style-type: decimal;
+
+        li {
+            &::before {
+                content: counter(count) ". ";
+                color: $black;
+                counter-increment: count;
+            }
+        }
+    }
+
+    ul,
+    ol {
+        margin-bottom: 8px;
+
+        li {
+            position: relative;
+            display: block;
+            padding: 8px 0;
+            font-size: 16px;
+            line-height: 120%;
+        }
+    }
+
+    img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 12px 0 20px;
+        border-radius: var(--br);
+        object-fit: cover;
+    }
+}

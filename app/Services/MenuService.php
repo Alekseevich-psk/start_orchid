@@ -6,6 +6,7 @@ use App\Models\Page;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Orchid\Screen\Actions\Menu;
 
 
@@ -106,7 +107,7 @@ class MenuService
                     'id' => $item->id,
                     'title' => $item->title,
                     'slug' => $item->slug,
-                    'url' => url($item->slug),
+                    'url' => $item->slug === '/' ? '/' : '/' . ltrim($item->slug, '/'),
                     'icon' => $this->getIconForItem($item),
                     'indexed' => $item->indexed,
                 ];
@@ -120,31 +121,6 @@ class MenuService
         }
 
         return $branch;
-    }
-
-    /**
-     * Строит цепочку хлебных крошек от корня до указанной страницы
-     *
-     * @param Page $page
-     * @return Collection<int, array{title: string, url?: string}>
-     */
-    public function buildPageBreadcrumbs(Page $page): Collection
-    {
-        $breadcrumbs = collect();
-
-        // Собираем путь от текущей страницы до корня
-        $current = $page;
-        while ($current) {
-            $breadcrumbs->push([
-                'title' => $current->title,
-                'url' => $current->slug ? route('page.show', $current->slug) : null,
-            ]);
-
-            $current = $current->parent;
-        }
-
-        // Переворачиваем: от корня к текущей
-        return $breadcrumbs->reverse();
     }
 
     /**
@@ -200,5 +176,175 @@ class MenuService
         }
 
         return $breadcrumbs;
+    }
+
+    /**
+     * Построить хлебные крошки для указанной страницы
+     */
+    public function buildBreadcrumbs(Page $page): array
+    {
+        return Cache::remember("breadcrumbs.{$page->id}", 3600, function () use ($page) {
+            $breadcrumbs = [];
+
+            // Собираем путь от корня до родителя (включая только in_slug_path = true)
+            $path = [];
+            $current = $page->parent;
+
+            while ($current) {
+                if ($current->in_slug_path ?? true) {
+                    $path[] = [
+                        'title' => $current->title,
+                        'url'   => url($current->slug),
+                    ];
+                }
+                $current = $current->parent;
+            }
+
+            // Разворачиваем путь: от корня к родителю
+            $breadcrumbs = array_reverse($path);
+
+            // Добавляем текущую страницу
+            $breadcrumbs[] = [
+                'title' => $page->title,
+                'url'   => url($page->slug),
+            ];
+
+            return $breadcrumbs;
+        });
+    }
+
+    /**
+     * Построить древовидное меню (например, для шаблона)
+     */
+    public function buildMenu(?int $parentId = null): Collection
+    {
+        return Page::where('is_published', true)
+            ->where('in_menu', true)
+            ->where('parent_id', $parentId)
+            ->orderBy('menu_order')
+            ->orderBy('title')
+            ->with(['children' => fn($q) => $q->published()->inMenu()->ordered()])
+            ->get();
+    }
+
+    /**
+     * Перестроить slug'и всех страниц с учётом in_slug_path
+     */
+    public function rebuildAllPagePaths()
+    {
+        $pages = Page::orderBy('parent_id')->get();
+        $pathMap = [];
+
+        foreach ($pages as $page) {
+            $localSlug = $page->alias ?: Str::slug($page->title);
+
+            $newPath = $this->generateFullPath(
+                $localSlug,
+                $page->parent_id,
+                $page->id
+            );
+
+            $page->slug = $newPath;
+            $page->saveQuietly();
+
+            $pathMap[$page->id] = $newPath;
+        }
+
+        Cache::forget('site.menu.tree');
+        Cache::flush(); // или точечно
+    }
+
+    /**
+     * Рекурсивно собирает сегменты пути, учитывая in_slug_path
+     */
+    private function collectPathSegments(Page $page, $allPages, array $pathMap, array &$segments): void
+    {
+        if (!$page->parent_id) {
+            return;
+        }
+
+        $parent = $allPages->firstWhere('id', $page->parent_id);
+
+        if (!$parent) {
+            return;
+        }
+
+        // Рекурсивно идём к корню
+        $this->collectPathSegments($parent, $allPages, $pathMap, $segments);
+
+        // Добавляем только если in_slug_path включён
+        if ($parent->in_slug_path ?? true) {
+            $parentSlug = $pathMap[$parent->id] ?? $parent->slug;
+            $segments[] = trim($parentSlug, '/');
+        }
+    }
+
+    /**
+     * Генерирует полный путь: parent/path + local-slug
+     */
+    public function generateFullPath(string $localSlug, ?int $parentId, ?int $currentId): string
+    {
+        $path = $localSlug;
+
+        // Рекурсивно собираем путь от корня, пропуская страницы с in_slug_path = false
+        if ($parentId) {
+            $segments = [];
+
+            $this->buildSlugPath($parentId, $segments);
+
+            if (!empty($segments)) {
+                $path = implode('/', $segments) . '/' . $localSlug;
+            }
+        }
+
+        // Проверяем уникальность пути
+        $query = Page::where('slug', $path);
+        if ($currentId) {
+            $query->where('id', '!=', $currentId);
+        }
+
+        if ($query->exists()) {
+            $counter = 1;
+            while (Page::where('slug', "{$path}-{$counter}")->where('id', '!=', $currentId)->exists()) {
+                $counter++;
+            }
+            $path = "{$path}-{$counter}";
+        }
+
+        return $path;
+    }
+
+    /**
+     * Рекурсивно строит цепочку slug'ов только для страниц с in_slug_path = true
+     */
+    private function buildSlugPath(?int $parentId, array &$segments): void
+    {
+        if (!$parentId) {
+            return;
+        }
+
+        $parent = Page::find($parentId);
+
+        if (!$parent) {
+            return;
+        }
+
+        // Рекурсивно идём к корню
+        $this->buildSlugPath($parent->parent_id, $segments);
+
+        // Добавляем текущий slug/alias только если in_slug_path включён
+        if ($parent->in_slug_path ?? true) {
+            $slugPart = $parent->slug ?? $parent->alias;
+            $segments[] = trim($slugPart, '/');
+        }
+    }
+
+    public function generateAlias(string $title, ?int $pageId = null): string
+    {
+        if ($pageId === 1) {
+            return '/';
+        }
+
+        return Str::slug($title ?: 'page');
     }
 }

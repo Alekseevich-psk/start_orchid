@@ -104,6 +104,10 @@ class FieldListScreen extends Screen
                     ->placeholder('Например: Главное ')
                     ->required(),
 
+                Input::make('field.description')
+                    ->title('Описание')
+                    ->placeholder('Доп. информация для пользователя'),
+
                 Select::make('field.type')
                     ->title('Тип поля')
                     ->options([
@@ -116,6 +120,10 @@ class FieldListScreen extends Screen
                     ])
                     ->empty('Выберите тип')
                     ->required(),
+
+                Input::make('field.options')
+                    ->title('Опции')
+                    ->placeholder('Разделитель ||'),
 
                 Input::make('field.model_id')
                     ->title('ID модели')
@@ -143,6 +151,10 @@ class FieldListScreen extends Screen
                     ->title('Заголовок')
                     ->required(),
 
+                Input::make('field.description')
+                    ->title('Описание')
+                    ->placeholder('Доп. информация для пользователя'),
+
                 Select::make('field.type')
                     ->title('Тип поля')
                     ->options([
@@ -154,6 +166,10 @@ class FieldListScreen extends Screen
                         'file'      => 'Файл',
                     ])
                     ->required(),
+                    
+                Input::make('field.options')
+                    ->title('Опции')
+                    ->placeholder('Разделитель ||'),
 
                 Input::make('field.model_id')
                     ->title('ID модели')
@@ -170,8 +186,7 @@ class FieldListScreen extends Screen
             ]))->title('Редактировать поле')->applyButton('Сохранить')->async('asyncGetFieldData'),
 
             // Модальное окно: Удаление
-            Layout::modal('deleteFieldModal', [
-            ])->title('Подтверждение удаления')->applyButton('Удалить')->method('remove')->closeButton(false),
+            Layout::modal('deleteFieldModal', [])->title('Подтверждение удаления')->applyButton('Удалить')->method('remove')->closeButton(false),
         ];
     }
 

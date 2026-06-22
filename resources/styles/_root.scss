@@ -1,0 +1,10 @@
+@use "./base" as *;
+
+:root {
+    --font-family: "Onest";
+    --br: 10px;
+}
+
+div {
+    background-image: url('/src/test.svg');
+}

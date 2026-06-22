@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('field_id');
             $table->string('title');
+            $table->string('description')->nullable();
             $table->string('type');
+            $table->string('options')->nullable();
             $table->string('model_type')->default('page'); // Page or Template
             $table->unsignedBigInteger('model_id')->nullable(); // ID of the Page or Template
             $table->timestamps();

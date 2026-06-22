@@ -5,7 +5,9 @@ namespace App\Orchid\Screens;
 use App\Models\Field;
 use App\Models\Page;
 use App\Models\Template;
-use App\Orchid\Fields\EditorJs;
+use App\Services\FieldBuilderService;
+use App\Services\MenuService;
+use App\Services\PageValidatorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -14,11 +16,12 @@ use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Actions\ModalToggle;
 use Orchid\Screen\Fields\Attach;
 use Orchid\Screen\Fields\CheckBox;
-use Orchid\Screen\Fields\Cropper;
 use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Fields\Group;
 use Orchid\Screen\Fields\Input;
+use Orchid\Screen\Fields\Matrix;
 use Orchid\Screen\Fields\Picture;
+use Orchid\Screen\Fields\Quill;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\Switcher;
 use Orchid\Screen\Fields\TextArea;
@@ -39,8 +42,6 @@ class PageScreen extends Screen
     public function query($id = null): array
     {
         $page = $id ? Page::findOrFail($id) : new Page();
-        // $page->attachment('image');
-        // dd($page->attachment('attachments'));
         $children = collect();
 
         if ($page->exists && $page->is_category) {
@@ -66,19 +67,32 @@ class PageScreen extends Screen
 
     public function commandBar(): array
     {
-        $commandBar = [
-            Button::make('Сохранить')
-                ->icon('check')
-                ->method('save')
-                ->canSee($this->page->exists),
 
-            Button::make('Создать')
+        $commandBar = [];
+
+        if ($this->page->is_category) {
+            $commandBar[] = Link::make('Добавить дочернюю страницу')
+                ->method('GET')
                 ->icon('plus')
-                ->method('save')
-                ->canSee(!$this->page->exists),
-        ];
+                ->route('platform.page.create', [
+                    'parent_id' => $this->page->id,
+                    'template_child_id' => $this->page->template_child_id,
+                ]);
+        }
 
-        if ($this->page->exists && $this->page->slug && $this->page->is_published) {
+        $commandBar[] = Button::make('Сохранить')
+            ->icon('check')
+            ->method('save')
+            ->canSee($this->page->exists)
+            ->shortcut('s');
+
+        $commandBar[] = Button::make('Создать')
+            ->icon('plus')
+            ->method('save')
+            ->shortcut('n')
+            ->canSee(!$this->page->exists);
+
+        if ($this->page->exists && $this->page->alias && $this->page->is_published) {
             $commandBar[] = Link::make('Перейти на страницу')
                 ->icon('eye-fill')
                 ->route('page.show', $this->page->slug)
@@ -101,7 +115,7 @@ class PageScreen extends Screen
                             ->route('platform.page.edit', $page->id)
                             ->class('text-dark td-title text-decoration-none')
                     ),
-                TD::make('slug', 'URL'),
+                TD::make('alias', 'Псевдоним'),
                 TD::make('')
                     ->render(
                         fn($page) =>
@@ -116,8 +130,8 @@ class PageScreen extends Screen
                         fn(Page $page) =>
                         ModalToggle::make('')
                             ->icon('trash')
-                            ->modal('removePage')
-                            ->modalTitle("Удалить шаблон \"{$page->title}\"?")
+                            ->modal('removeChild')
+                            ->modalTitle("Удалить \"{$page->title}\"?")
                             ->method('remove', ['id' => $page->id])
                             ->confirm('Удалить навсегда?')
                             ->class('btn-td')
@@ -134,7 +148,9 @@ class PageScreen extends Screen
                     ->title('Аннотация'),
                 TextArea::make('page.description')
                     ->title('Описание (SEO)'),
-                EditorJs::make('page.content')
+                Quill::make('page.content')
+                    ->height('620px')
+                    ->toolbar(['text', 'header', 'color', 'quote', 'header', 'list', 'format', 'media'])
                     ->label('Контент'),
             ]),
             'Настройки' => Layout::rows([
@@ -147,8 +163,13 @@ class PageScreen extends Screen
                             'link' => 'Ссылка',
                         ]),
                     Select::make('page.template_id')
-                        ->title('Шаблон страницы')
-                        ->options($this->templates),
+                        ->fromModel(Template::class, 'title', 'id')
+                        ->title('Шаблон ресурса')
+                        ->value(
+                            $this->page->exists
+                                ? $this->page->template_child_id
+                                : (request('template_child_id') ?? 4) // значение по умолчанию — 4
+                        ),
                 ]),
                 Group::make([
                     DateTimer::make('page.published_at')
@@ -167,16 +188,26 @@ class PageScreen extends Screen
                     Select::make('page.parent_id')
                         ->fromModel(Page::where('is_category', true)->where('id', '!=', $this->page->id), 'title', 'id')
                         ->empty('Без родителя (корень)', '0')
-                        ->title('Родительская страница'),
+                        ->title('Родительская страница')
+                        ->value($this->page->exists ? $this->page->parent_id : request('parent_id')),
                 ]),
                 Group::make([
                     Input::make('page.ico')
                         ->title('Иконка')
                         ->help('Оставьте поле пустым, чтобы отобразить иконку шаблона'),
-                    Input::make('page.slug')
-                        ->title('URL (slug)')
+                    Input::make('page.alias')
+                        ->title('Псевдоним')
                         ->placeholder('Оставьте пустым — будет сгенерирован автоматически')
                         ->help('Используется в адресе страницы. Только латинские буквы, цифры, дефисы'),
+                ]),
+                Group::make([
+                    Input::make('page.ico')
+                        ->title('Иконка')
+                        ->help('Оставьте поле пустым, чтобы отобразить иконку шаблона'),
+                    Select::make('page.template_child_id')
+                        ->fromModel(Template::class, 'title', 'id')
+                        ->title('Шаблон дочерних ресурсов')
+                        ->value($this->page->exists ? $this->page->template_child_id : request('template_child_id')),
                 ]),
                 Group::make([
                     Switcher::make('page.is_published')
@@ -198,25 +229,26 @@ class PageScreen extends Screen
                         ->sendTrueOrFalse()
                         ->title('Индексируется'),
                 ]),
-                // Input::make('page.image')
-                //     ->title('Debug: image value')
-                //     ->disabled(),
-                Attach::make('page.image')
-                    ->title('Превью страницы')
-                    ->width(500)
-                    ->height(300)
-                    ->targetRelativeUrl()
-                    ->required(false),
-                // Upload::make('image')
-                //     ->title('Основное изображение 1170x620px')
-                //     ->acceptedFiles('image/*')
-                //     ->maxFiles(1)
-                // Attach::make('images'),
+                Group::make([
+                    Switcher::make('page.in_slug_path')
+                        ->default(true)
+                        ->sendTrueOrFalse()
+                        ->title('Участвует в формировании url дочерних страниц'),
+                ]),
+                Group::make([
+                    Attach::make('page.image')
+                        ->title('Превью страницы')
+                        ->width(500)
+                        ->height(300)
+                        ->targetRelativeUrl()
+                        ->required(false),
+                ]),
             ]),
         ];
 
         // Добавляем вкладку "Блоки" только если есть поля
-        $customFields = $this->buildCustomFields();
+        $customFields = app(FieldBuilderService::class)->build($this->page);
+
         if (!empty($customFields)) {
             $tabs['Блоки'] = Layout::rows($customFields);
         }
@@ -225,6 +257,7 @@ class PageScreen extends Screen
             Layout::tabs($tabs),
 
             Layout::modal('removeChild', Layout::rows([]))->title('Подтвердите удаление'),
+                // Layout::modal('removePage', [])->title('Подтверждение удаления')->applyButton('Удалить')->method('remove')->closeButton(false),
         ];
     }
 
@@ -234,12 +267,19 @@ class PageScreen extends Screen
         $data = $request->input('page');
 
         $this->validateInput($data, $page);
-        $data = $this->prepareSlug($data);
+        $data = $this->prepareAlias($data);
 
-        $this->checkTitleUniqueness($data, $page);
-        $this->checkSlugUniqueness($data, $page);
+        app(PageValidatorService::class)->checkTitleUniqueness($data['title'], $page->id);
+        app(PageValidatorService::class)->checkAliasUniqueness($data['alias'], $page->id);
 
         $data = $this->ensurePublishedAt($data);
+
+        // Генерируем slug через сервис
+        $data['slug'] = app(MenuService::class)->generateFullPath(
+            $data['alias'],
+            $data['parent_id'] ?? null,
+            $page->id ?? null
+        );
 
         $page->fill($data)->save();
 
@@ -251,91 +291,6 @@ class PageScreen extends Screen
         Toast::info('Страница сохранена');
 
         return redirect()->route('platform.page.edit', $page->id);
-    }
-
-    /**
-     * Создаёт динамические поля из таблицы `fields`
-     */
-    private function buildCustomFields(): array
-    {
-        $formFields = [];
-        $page = $this->page;
-        $fields = collect();
-
-        // 1. Поля из шаблона
-        if ($page->template_id) {
-            $templateFields = Field::where('model_type', 'template')
-                ->where('model_id', $page->template_id)
-                ->get();
-
-            $fields = $fields->concat($templateFields);
-        }
-
-        // 2. Поля из самой страницы (имеют приоритет)
-        if ($page->id) {
-            $pageFields = Field::where('model_type', 'page')
-                ->where('model_id', $page->id)
-                ->get();
-
-            // Удаляем дубли по field_id — оставляем только из страницы
-            $fields = $fields->reject(fn($field) => $pageFields->contains('field_id', $field->field_id))
-                ->concat($pageFields);
-        }
-
-        $formFields = [];
-
-        foreach ($fields as $field) {
-            $name = "page.blocks.{$field->field_id}";
-
-            switch ($field->type) {
-                case 'text':
-                    $formFields[] = Input::make($name)
-                        ->title($field->title);
-                    break;
-
-                case 'textarea':
-                    $formFields[] = TextArea::make($name)
-                        ->title($field->title)
-                        ->rows(5);
-                    break;
-
-                case 'checkbox':
-                    $formFields[] = CheckBox::make($name)
-                        ->title($field->title);
-                    break;
-
-                case 'select':
-                    $options = [];
-                    if ($field->options) {
-                        $decoded = json_decode($field->options, true);
-                        $options = is_array($decoded) ? $decoded : [];
-                    }
-                    $formFields[] = Select::make($name)
-                        ->title($field->title)
-                        ->options($options);
-                    break;
-
-                case 'image':
-                    $formFields[] = Picture::make($name)
-                        ->title($field->title)
-                        ->maxFiles(1);
-                    break;
-
-                case 'file':
-                    $formFields[] = Upload::make($name)
-                        ->title($field->title)
-                        ->acceptedFiles('*/*');
-                    break;
-
-                default:
-                    $formFields[] = Input::make($name)
-                        ->title("{$field->title} ({$field->type})")
-                        ->help('Тип не поддерживается');
-                    break;
-            }
-        }
-
-        return $formFields;
     }
 
     /**
@@ -365,66 +320,22 @@ class PageScreen extends Screen
     {
         validator($data, [
             'title' => 'required|string|max:255',
-            'slug'  => 'nullable|string|max:255',
+            'alias'  => 'nullable|string|max:255',
         ])->validate();
     }
 
     /**
-     * Генерация slug, если не задан.
+     * Генерация alias, если не задан.
      */
-    private function prepareSlug(array $data): array
+    private function prepareAlias(array $data): array
     {
-        if (empty($data['slug'])) {
-            $data['slug'] = Str::slug($data['title'] ?? 'page');
-        }
-        return $data;
-    }
-
-    /**
-     * Проверка уникальности заголовка.
-     */
-    private function checkTitleUniqueness(array $data, Page $page): void
-    {
-        $existing = Page::where('title', $data['title'])
-            ->when($page->id, fn($q) => $q->where('id', '!=', $page->id))
-            ->first();
-
-        if ($existing) {
-            $this->throwValidationError(
-                'page.title',
-                "Страница с таким заголовком уже существует: «{$existing->title}»"
+        if (empty($data['alias'])) {
+            $data['alias'] = app(MenuService::class)->generateAlias(
+                $data['title'] ?? '',
+                $this->page->id ?? null
             );
         }
-    }
 
-    /**
-     * Проверка уникальности slug.
-     */
-    private function checkSlugUniqueness(array $data, Page $page): void
-    {
-        $existing = Page::where('slug', $data['slug'])
-            ->when($page->id, fn($q) => $q->where('id', '!=', $page->id))
-            ->first();
-
-        if ($existing) {
-            $this->throwValidationError(
-                'page.slug',
-                "Адрес <strong>/{$data['slug']}</strong> уже используется: <a href='" .
-                    route('platform.page.edit', $existing->id) .
-                    "'><em>«{$existing->title}»</em></a>"
-            );
-        }
-    }
-
-    /**
-     * Преобразование строковых значений в boolean.
-     */
-    private function prepareBooleans(array $data): array
-    {
-        $booleans = ['is_published', 'in_menu', 'is_category', 'indexed'];
-        foreach ($booleans as $field) {
-            $data[$field] = filter_var($data[$field] ?? false, FILTER_VALIDATE_BOOLEAN);
-        }
         return $data;
     }
 
@@ -440,12 +351,11 @@ class PageScreen extends Screen
     }
 
     /**
-     * Бросаем ошибку с подсветкой поля и HTML-сообщением.
+     * Удаление шаблона
      */
-    private function throwValidationError(string $field, string $message): void
+    public function remove(int $id)
     {
-        throw ValidationException::withMessages([
-            $field => $message,
-        ])->errorBag('default')->redirectTo(url()->previous());
+        Page::findOrFail($id)->delete();
+        Toast::info('Страница удалена!');
     }
 }

@@ -1,0 +1,36 @@
+@use "~/styles/base" as *;
+
+.breadcrumbs {
+
+    &__item {
+        position: relative;
+        display: inline-block;
+        margin-right: 6px;
+        opacity: 0.7;
+
+        &::after {
+            position: relative;
+            content: "/";
+            font-weight: 400;
+            font-size: 18px;
+            line-height: 120%;
+            color: #0d151e;
+        }
+
+        &:last-child {
+            opacity: 1;
+
+            &::after {
+                display: none;
+            }
+        }
+    }
+
+    &__link {
+        font-weight: 400;
+        font-size: 18px;
+        line-height: 120%;
+        color: #0d151e;
+    }
+
+}

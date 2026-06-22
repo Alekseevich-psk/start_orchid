@@ -1,0 +1,9 @@
+@use "./media" as *;
+
+@mixin slWrapper() {
+    padding-bottom: 60px;
+
+    @include forMobile {
+        padding-bottom: 40px;
+    }
+}
