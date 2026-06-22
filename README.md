@@ -1,4 +1,4 @@
-# StartOrchid — Миним CMS на Laravel + Orchid
+# StartOrchid — Мини CMS на Laravel + Orchid
 
 Это минималистичная CMS-сборка на базе Laravel Framework и Orchid Platform, предназначенная для быстрого старта проектов.
 
