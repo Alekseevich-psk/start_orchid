@@ -13,7 +13,7 @@ class Setting extends Model
 
     protected $fillable = ['title','key', 'value', 'group', 'type'];
 
-    // Пример: автоматическое приведение типов
+    // Автоматическое приведение типов для value
     protected $casts = [
         'value' => 'json',
     ];
@@ -33,4 +33,31 @@ class Setting extends Model
         'created_at',
     ];
 
+    /**
+     * Статический метод для получения одной настройки
+     *
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public static function get(string $key, mixed $default = null): mixed
+    {
+        $setting = self::where('key', $key)->first();
+        return $setting?->value ?? $default;
+    }
+
+    /**
+     * Статический метод для обновления настройки
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return Setting|null
+     */
+    public static function update(string $key, mixed $value): ?self
+    {
+        $setting = self::firstOrCreate(['key' => $key]);
+        $setting->value = $value;
+        $setting->save();
+        return $setting;
+    }
 }
