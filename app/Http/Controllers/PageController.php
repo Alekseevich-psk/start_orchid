@@ -23,7 +23,7 @@ class PageController extends Controller
             ? Page::published()->findOrFail(1)
             : Page::published()->where('slug', $slug)->first();
 
-        if (!$page) {
+            if (!$page) {
             abort(404, 'Страница не найдена');
         }
 
