@@ -14,17 +14,17 @@ class TemplateSeeder extends Seeder
     {
         Template::firstOrCreate([
             'title'       => 'Главная',
-            'path'  => 'resources/views/index.blade.php',
+            'path'  => 'index',
         ]);
 
         Template::firstOrCreate([
             'title'       => 'Контакты',
-            'path'  => 'resources/views/contacts.blade.php',
+            'path'  => 'contacts',
         ]);
 
         Template::firstOrCreate([
             'title'       => 'Документ',
-            'path'  => 'resources/views/document.blade.php',
+            'path'  => 'document',
         ]);
     }
 }

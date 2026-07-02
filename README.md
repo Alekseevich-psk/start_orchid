@@ -61,44 +61,7 @@ pnpm install
 
 ---
 
-### 3. Очистка кэша приложения
-
-Очистите все кэши Laravel:
-
-```bash
-php artisan optimize:clear
-```
-
-Или по отдельности:
-
-```bash
-php artisan config:clear
-php artisan cache:clear
-php artisan route:clear
-php artisan view:clear
-```
-
----
-
-### 4. Создание символической ссылки для файлов
-
-Сначала удалите старую символическую ссылку (если существует):
-
-```bash
-rmdir public/storage
-```
-
-Затем создайте новую символическую ссылку `storage/app/public` → `public/storage`:
-
-```bash
-php artisan storage:link
-```
-
-> ✅ Это необходимо для доступа к загруженным через Orchid файлам (изображения, документы и т.д.)
-
----
-
-### 5. Настройка файла `.env`
+### 3. Настройка файла `.env`
 
 Скопируйте пример конфигурации и отредактируйте под вашу среду:
 
@@ -147,7 +110,53 @@ copy .env.example .env
 
 ---
 
-### 6. Создание администратора (Orchid)
+### 4. Генерация ключа приложения
+
+Если ключ не сгенерирован автоматически (через `composer install`), выполните:
+
+```bash
+php artisan key:generate
+```
+
+---
+
+### 5. Запуск миграций
+
+Выполните миграции для создания таблиц в базе данных:
+
+```bash
+php artisan migrate
+```
+
+> ✅ Orchid создаст свои таблицы: `users`, `roles`, `permissions`, `orchid_attachments`, `orchid_users` и др.
+>
+> ⚠️ **Важно:** Сначала настройте подключение к базе данных в `.env`, иначе миграции не выполнятся!
+
+---
+
+### 6. Запуск сидеров (seeders)
+
+Заполните базу тестовыми данными (страницы, шаблоны, настройки):
+
+```bash
+php artisan db:seed
+```
+
+> 💡 Сидеры создают:
+> - Две страницы: "Главная" (`/`) и "Контакты" (`contacts`)
+> - Три шаблона: "Главная", "Контакты", "Документ"
+> - Настройки сайта
+
+> Для запуска конкретного сидера используйте:
+> ```bash
+> php artisan db:seed --class=PageHomeSeeder
+> php artisan db:seed --class=TemplateSeeder
+> php artisan db:seed --class=SettingSeeder
+> ```
+
+---
+
+### 7. Создание администратора (Orchid)
 
 Создайте первого пользователя с правами администратора:
 
@@ -156,6 +165,7 @@ php artisan orchid:admin
 ```
 
 Система запросит:
+
 - Имя пользователя
 - Email
 - Пароль
@@ -164,46 +174,58 @@ php artisan orchid:admin
 
 ---
 
-### 7. Запуск миграций
+### 8. Очистка кэша приложения
 
-Выполните миграции для создания таблиц в базе данных:
+Очистите все кэши Laravel:
 
 ```bash
-php artisan migrate
+php artisan optimize:clear
 ```
 
-> ✅ Orchid создаст свои таблицы: `users`, `roles`, `permissions`, `posts`, `terms`, `media` и др.
-
----
-
-### 8. Запуск сидеров (seeders)
-
-Если в проекте есть сидеры (файл `database/seeders/DatabaseSeeder.php`), заполните базу тестовыми данными:
+Или по отдельности:
 
 ```bash
-php artisan db:seed
-```
-
-> 💡 Для запуска конкретного сидера используйте:
-> ```bash
-> php artisan db:seed --class=SomeSeeder
-> ```
-
----
-
-### 9. Публикация файлов Orchid
-
-Для публикации файлов Orchid используйте специальную команду:
-
-```bash
-php artisan orchid:publish
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
 php artisan view:clear
 ```
 
-> 📂 Будут опубликованы:
-> - Конфигурационные файлы (`config/orchid.php`)
-> - Виды (views) — для кастомизации интерфейса
-> - Ресурсы (assets, CSS, JS)
+---
+
+### 9. Создание символической ссылки для файлов
+
+> 💡 **Для Windows:** Используйте PowerShell или CMD
+> 
+> **Для macOS/Linux:** Используйте терминал Unix
+
+Сначала удалите старую символическую ссылку (если существует):
+
+```bash
+# Windows (PowerShell)
+Remove-Item -Path public/storage -Force -ErrorAction SilentlyContinue
+
+# macOS/Linux
+rm -f public/storage
+```
+
+Затем создайте новую символическую ссылку `storage/app/public` → `public/storage`:
+
+```bash
+php artisan storage:link
+```
+
+> ✅ Это необходимо для доступа к загруженным через Orchid файлам (изображения, документы и т.д.)
+
+> 💡 **Альтернатива:** Если `php artisan storage:link` не срабатывает, создайте ссылку вручную:
+> 
+> ```bash
+> # Windows (PowerShell от имени администратора)
+> New-Item -ItemType SymbolicLink -Path public/storage -Target storage/app/public
+> 
+> # macOS/Linux
+> ln -s storage/app/public public/storage
+> ```
 
 ---
 
@@ -307,7 +329,7 @@ node tasks/create.js --component Header --ts
 node tasks/fonts-in-style.js
 ```
 
-> 📝 Скр��пт:
+> 📝 Скрипт:
 > - Очищает `_fonts.scss`
 > - Сканирует `public/fonts/` на наличие `.woff` файлов
 > - Определяет вес и стиль по названию (Thin, Bold, Italic и т.д.)
@@ -407,18 +429,29 @@ php artisan optimize:clear
 
 ## 🎯 Быстрый старт (чек-лист)
 
-1. ✅ `composer install`
-2. ✅ `pnpm install`
-3. ✅ `copy .env.example .env`
+1. ✅ `composer install` — установка PHP-зависимостей
+2. ✅ `pnpm install` — установка Node.js-зависимостей
+3. ✅ `copy .env.example .env` — копирование конфигурации
 4. ✅ Отредактируйте `.env` (настройки БД, APP_URL и т.д.)
-5. ✅ `php artisan orchid:admin`
-6. ✅ `php artisan migrate`
-7. ✅ `php artisan db:seed` (если есть)
-8. ✅ `php artisan storage:link`
-9. ✅ `php artisan optimize:clear`
-10. ✅ `composer dev` или запустите отдельно `php artisan serve` + `pnpm run dev`
+5. ✅ `php artisan key:generate` — генерация ключа приложения
+6. ✅ `php artisan migrate` — запуск миграций
+7. ✅ `php artisan db:seed` — заполнение тестовыми данными
+8. ✅ `php artisan orchid:admin` — создание администратора
+9. ✅ `php artisan storage:link` — создание символической ссылки
+10. ✅ `php artisan optimize:clear` — очистка кэша
+11. ✅ `composer dev` или запустите отдельно `php artisan serve` + `pnpm run dev`
 
-> 🚀 Готово! Админка доступна по `/dashboard`
+> 🚀 Готово! Админка доступна по `/dashboard`, главная страница по `/`
+>
+> 💡 **Для Windows:** При удалении символической ссылки используйте PowerShell:
+> ```powershell
+> Remove-Item -Path public/storage -Force -ErrorAction SilentlyContinue
+> ```
+>
+> Если `php artisan storage:link` не создает ссылку, создайте её вручную:
+> ```powershell
+> New-Item -ItemType SymbolicLink -Path public/storage -Target storage/app/public
+> ```
 
 ---
 
@@ -439,6 +472,46 @@ php artisan optimize:clear
 | `No application encryption key has been specified.` | Выполните `php artisan key:generate` или `composer install` |
 | `The stream or file storage/logs/laravel.log could not be opened` | Убедитесь, что папка `storage/` доступна на запись (`chmod -R 775 storage bootstrap/cache`) |
 | `Vite manifest not found` | Запустите `pnpm run dev` или `pnpm run build` |
+| `404 Not Found` | Убедитесь, что выполнены миграции и сидеры (`php artisan migrate && php artisan db:seed`) |
+| `View [index] not found` | Убедитесь, что запущен сидер шаблонов: `php artisan db:seed --class=TemplateSeeder` |
+
+---
+
+## 🔧 Исправление ошибки 404 на главной странице
+
+Если вы видите 404 ошибку при открытии главной страницы `/`, проверьте:
+
+1. **Выполнены ли миграции?**
+   ```bash
+   php artisan migrate
+   ```
+
+2. **Запущены ли сидеры?**
+   ```bash
+   php artisan db:seed
+   ```
+
+3. **Существует ли страница с ID=1 в базе:**
+   ```bash
+   php artisan tinker
+   >>> Page::find(1)
+   ```
+
+4. **Существует ли шаблон с ID=1:**
+   ```bash
+   php artisan tinker
+   >>> Template::find(1)
+   ```
+
+5. **Проверьте, что страница опубликована:**
+   ```bash
+   php artisan tinker
+   >>> $page = Page::find(1);
+   >>> echo "is_published: " . $page->is_published;
+   >>> echo "indexed: " . $page->indexed;
+   ```
+
+> ⚠️ **Важно:** Сидер `TemplateSeeder` создает шаблоны с правильными путями (`index`, `contacts`, `document`), а не с префиксом `resources/views/`.
 
 ---
 
