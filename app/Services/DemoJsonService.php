@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Services\AttachmentUrlResolver;
-use Illuminate\Support\Facades\Cache;
 
 class DemoJsonService
 {
@@ -15,21 +14,23 @@ class DemoJsonService
     }
 
     /**
-     * Загружаем данные из JSON
+     * Загружаем данные из JSON без кэширования
      */
     protected function loadData(): void
     {
         $jsonPath = base_path('resources/views/data/data.json');
 
-        $this->data = Cache::remember('site.data', 3600, function () use ($jsonPath) {
-            $rawData = json_decode(file_get_contents($jsonPath), true);
+        if (!file_exists($jsonPath)) {
+            throw new \RuntimeException('JSON файл не найден: ' . $jsonPath);
+        }
 
-            if ($rawData === null && json_last_error() !== JSON_ERROR_NONE) {
-                throw new \RuntimeException('Ошибка при декодировании JSON: ' . json_last_error_msg());
-            }
+        $rawData = json_decode(file_get_contents($jsonPath), true);
 
-            return (new AttachmentUrlResolver)->resolve($rawData);
-        });
+        if ($rawData === null && json_last_error() !== JSON_ERROR_NONE) {
+            throw new \RuntimeException('Ошибка при декодировании JSON: ' . json_last_error_msg());
+        }
+
+        $this->data = (new AttachmentUrlResolver)->resolve($rawData);
     }
 
     /**
