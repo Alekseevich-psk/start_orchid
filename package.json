@@ -4,7 +4,10 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "ttfToWoff": "node tasks/convert-fonts.js",
+        "fontsInStyle": "node tasks/fonts-in-style.js",
+        "create": "node tasks/create.js"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
